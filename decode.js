@@ -34,7 +34,13 @@ Decode.VERSIONINFO = [
 	0x209D5, 0x216F0, 0x228BA, 0x2379F, 0x24B0B,
 	0x2542E, 0x26A64, 0x27541, 0x28C69
 ];
-
+//纠错等级表
+Decode.ECL_TABLE = {
+	1 : 'L',
+	0 : 'M',
+	3 : 'Q',
+	2 : 'H'
+};
 Decode.VERSION_TABLE = [
 	{ 
 		aLigmentPattern : [], 
@@ -283,7 +289,8 @@ Decode.VERSION_TABLE = [
 //Offset i holds the number of 1 bits in the binary representation of i
 Decode.BITS_SET_IN_HALF_BYTE = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
 Decode.numBitsDiffering = function(a, b){
-	 a ^= b; // a now has a 1 bit exactly where its bit differs with b's
+	// a now has a 1 bit exactly where its bit differs with b's
+	 a ^= b;
     // Count bits set quickly with a series of lookups:
 	return Decode.BITS_SET_IN_HALF_BYTE[a & 0x0F] +
 		Decode.BITS_SET_IN_HALF_BYTE[(a >>> 4 & 0x0F)] +
@@ -301,7 +308,7 @@ Decode.prototype = {
 		this.version = this.getVersionInfo();
 		this.dimension = this.version * 4 + 17;
 		this.formatinfo = this.getFormatInfo();
-		this.codeword = this.getCodeWord();
+		this.codeWord = this.getCodeWord();
 
 
 	},
@@ -463,6 +470,7 @@ Decode.prototype = {
 		throw 'error version'
 	},
 
+	//解析bitmatrix获取ECbBlocks的数据
 	getCodeWord : function(){
 		//过滤功能图形 function pattern 直接设置null 读取时遇到null的直接continue
 		//过滤位置探测图形
@@ -479,26 +487,32 @@ Decode.prototype = {
 			//过滤版本信息
 			this.clearVersionInfo();
 		}
-		var codeword = [];
+		var codeWord = [];
 		var arrow = -1;
 		var bitIndex = 7;
 		var byteIndex = 0;
 		var y = this.dimension - 1;
 		var bit;
-		//read
-		for(var x = this.dimension - 1; x > 0; x -=2){
+		this.totalCodeWord = this.getTotalCodeWord();
+		//
+		loopX : for(var x = this.dimension - 1; x > 0; x -=2){
 			//第7列是位置探测图形和定位图形 不存在数据 
 			//同时修正x坐标
 			if(x == 6) x--;
-			for(; y >= 0 && y < this.dimension; y += arrow){
+			loopY : for(; y >= 0 && y < this.dimension; y += arrow){
 				for(var i = 0; i < 2; i ++){
 					if( ( bit = this.bitMatrix.get(x - i, y) ) != null ){
-						codeword[byteIndex] || (codeword[byteIndex] = 0);
-						codeword[byteIndex] += (bit ^ this.getMask(this.formatinfo.maskPattern, x - i, y)) << bitIndex;
+						codeWord[byteIndex] || (codeWord[byteIndex] = 0);
+						codeWord[byteIndex] += (bit ^ this.getMask(this.formatinfo.maskPattern, x - i, y)) << bitIndex;
 						bitIndex--;
 						if(bitIndex == -1){
 							byteIndex++;
 							bitIndex = 7;
+
+							//计算数据位已达到容量
+							if(this.totalCodeWord == byteIndex){
+								break loopX;
+							}
 						}
 					}
 				}
@@ -506,6 +520,21 @@ Decode.prototype = {
 			arrow *= -1;
 			y += arrow;
 		}
+		if (this.totalCodeWord != byteIndex) {
+			throw 'readCodewords : ' + byteIndex + ' != totalcodeWords';
+		}
+		console.log(codeWord)
+		return codeWord;
+	},
+
+	//统计ECBlock数量
+	getTotalCodeWord : function(){
+		var total = 0;
+		var ecbArray = Decode.VERSION_TABLE[this.version - 1][Decode.ECL_TABLE[this.formatinfo.errorCorrectionLevel]];
+		for (var i = 0;i < ecbArray.length; i+= 3) {
+          	total += ecbArray[i] * (ecbArray[i + 1]);
+        }
+        return total;
 	},
 
 	//清理位置探测图形
@@ -544,7 +573,7 @@ Decode.prototype = {
 	},
 
 	//清理定位图形
-	clearTimingPattern : function() {	
+	clearTimingPattern : function() {
 		for (var i = 8; i < this.dimension - 8; i++) {
 			this.bitMatrix.set(i, 6, null);
 			this.bitMatrix.set(6, i, null);
