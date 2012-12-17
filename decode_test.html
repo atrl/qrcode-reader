@@ -47,8 +47,9 @@ bitMatrix.get = function(x, y){
 bitMatrix.set = function(x, y, value){
 	this[this.width * y + x] = value;
 }
-new Decode(bitMatrix).process();
-
+var decode = new Decode(bitMatrix);
+decode.process();
+decode.bitMatrix.get(16,8)
 </script>
 </html>
 </html>

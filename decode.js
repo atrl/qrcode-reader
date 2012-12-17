@@ -487,17 +487,16 @@ Decode.prototype = {
 		var bit;
 		//read
 		for(var x = this.dimension - 1; x > 0; x -=2){
-			//第6列是位置探测图形和定位图形 直接跳过
-			if(x == 6) continue;
+			//第7列是位置探测图形和定位图形 不存在数据 
+			//同时修正x坐标
+			if(x == 6) x--;
 			for(; y >= 0 && y < this.dimension; y += arrow){
 				for(var i = 0; i < 2; i ++){
 					if( ( bit = this.bitMatrix.get(x - i, y) ) != null ){
 						codeword[byteIndex] || (codeword[byteIndex] = 0);
 						codeword[byteIndex] += (bit ^ this.getMask(this.formatinfo.maskPattern, x - i, y)) << bitIndex;
 						bitIndex--;
-						console.log(x-i,y, bit,this.getMask(this.formatinfo.maskPattern, x - i, y),(bit ^ this.getMask(this.formatinfo.maskPattern, x - i, y)), bitIndex)
 						if(bitIndex == -1){
-							console.log(codeword[byteIndex]);
 							byteIndex++;
 							bitIndex = 7;
 						}
@@ -507,7 +506,6 @@ Decode.prototype = {
 			arrow *= -1;
 			y += arrow;
 		}
-		console.log(codeword)
 	},
 
 	//清理位置探测图形
@@ -529,8 +527,8 @@ Decode.prototype = {
 				//位置探测图形周围没有校验图形
 				if(
 					(x == 0 && y == 0) || 
-					(x == 0 && y == this.dimension - 1) ||
-					(x == this.dimension - 1 && y == 0)
+					(x == 0 && y == aLigmentPattern.length - 1) ||
+					(x == aLigmentPattern.length - 1 && y == 0)
 				){
                   continue;
                 }
