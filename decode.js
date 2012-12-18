@@ -41,6 +41,7 @@ Decode.ECL_TABLE = {
 	3 : 'Q',
 	2 : 'H'
 };
+//版本信息表
 Decode.VERSION_TABLE = [
 	{ 
 		aLigmentPattern : [], 
@@ -284,6 +285,50 @@ Decode.VERSION_TABLE = [
 		H : [20, 45, 15, 61, 46, 16]
 	}
 ];
+
+//模式指示符
+Decode.MODE_TABLE = {
+	0x00 : {
+		type : 'TERMINATOR',
+		length : [0, 0, 0]
+	},
+	0x01 : {
+		type : 'NUMERIC',
+		length : [10, 12, 14]
+	},
+	0x02 : {
+		type : 'ALPHANUMERIC',
+		length : [9, 11, 13]
+	},
+	0x03 : {
+		type : 'STRUCTURED_APPEND',
+		length : [0, 0, 0]
+	},
+	0x04 : {
+		type : 'BYTE',
+		length : [8, 16, 16]
+	},
+	0x07 : {
+		type : 'ECI',
+		length : null
+	},
+	0x08 : {
+		type : 'KANJI',
+		length : [8, 10, 12]
+	},
+	0x05 : {
+		tpye : 'FNC1_FIRST_POSITION',
+		length : null
+	},
+	0x09 : {
+		type : 'FNC1_SECOND_POSITION',
+		length : null
+	},
+	0x0D : {
+		type : 'HANZI',
+		length : [8, 10, 12]
+	}
+]
 
 //用于计算差异
 //Offset i holds the number of 1 bits in the binary representation of i
@@ -618,6 +663,11 @@ Decode.prototype = {
 		}
 	},
 
+	//解析内容
+	parseCodeWord : function(){
+
+	},
+
 	//ECI 		0111
 	parseECI : function(){
 
@@ -644,7 +694,7 @@ Decode.prototype = {
 	},
 
 	//中国汉字	1101
-	parseGB2312 : function(){
+	parseHanzi : function(){
 
 	}
 }
