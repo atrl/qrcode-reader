@@ -328,7 +328,7 @@ Decode.MODE_TABLE = {
 		type : 'HANZI',
 		length : [8, 10, 12]
 	}
-]
+}
 
 //用于计算差异
 //Offset i holds the number of 1 bits in the binary representation of i
@@ -355,7 +355,10 @@ Decode.prototype = {
 		this.formatinfo = this.getFormatInfo();
 		this.codeWord = this.getCodeWord();
 
+		this.bitSource = new BitSource(this.codeWord);
+		this.source = this.parseSource();
 
+		console.log(this.source);
 	},
 
 	/**
@@ -664,8 +667,44 @@ Decode.prototype = {
 	},
 
 	//解析内容
-	parseCodeWord : function(){
+	parseSource : function(){
+		var mode, length;
+		var data = '';
+		if (this.version <= 9)
+			this.dataLengthMode = 0;
+		else if (this.version >= 10 && this.version <= 26)
+			this.dataLengthMode = 1;
+		else if (this.version >= 27 && this.version <= 40)
+			this.dataLengthMode = 2;
 
+		do{
+			mode = this.bitSource.readBits(4);
+			switch(Decode.MODE_TABLE[mode].type){
+				case 'TERMINATOR':
+					break;
+				case 'NUMERIC':
+					break;
+				case 'ALPHANUMERIC':
+					break;
+				case 'STRUCTURED_APPEND':
+					break;
+				case 'BYTE':
+					data += this.parseByte();
+					break;
+				case 'ECI':
+					break;
+				case 'KANJI':
+					break;
+				case 'FNC1_FIRST_POSITION':
+					break;
+				case 'FNC1_SECOND_POSITION':
+					break;
+				case 'HANZI':
+					break;
+			}
+		}while(mode == 'TERMINATOR');
+
+		return data;
 	},
 
 	//ECI 		0111
@@ -685,7 +724,13 @@ Decode.prototype = {
 
 	//8 位字节	0100
 	parseByte : function(){
-
+		var length = this.bitSource.readBits(Decode.MODE_TABLE[0x04].length[this.dataLengthMode]);
+		var result = [];
+		while(length){
+			result.push(String.fromCharCode(this.bitSource.readBits(8)));
+			length--;
+		}
+		return result.join('');
 	},
 
 	//日本汉字 	1000
