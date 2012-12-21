@@ -1,41 +1,44 @@
 
 //二值化后的image对象
-var ImgBitmap = function(image, width, height){
-	this.image = image;
+var ImgBitmap = function(width, height){
+	this.data = [];
 	this.width = width;
 	this.height = height;
 }
 
-imgBitmap.prototype = {
+ImgBitmap.prototype = {
 	get : function(x, y){
-		return this.image[this.width * y + x];
+		return this.data[this.width * y + x];
 	},
 	set : function(x, y, value){
-		this.image[this.width * y + z] = value;
+		this.data[this.width * y + x] = value;
 	}
 }
 
 //预处理
 var preProcess = function(image){
-	this.imgBitmap = new ImgBitmap(image, image.width, image.height);
-	this.grayscale(image);
-	this.binarization(image);
+	this.imgBitmap = new ImgBitmap(image.width, image.height);
+	this.grayscale(image.data);
+	this.binarization(image.data, image.width, image.height);
+	if(true){
+		ctx.putImageData(image, 0, 0);
+	}
+
 	return this.imgBitmap;
 }
 
 preProcess.prototype = {
-	grayscale : function(imgData){
-		var pix = imgData.data;
+	grayscale : function(data){
+		var pix = data;
 		for (var i = 0, n = pix.length; i < n; i += 4) {
 			var grayscale = pix[i] * .3 + pix[i+1] * .59 + pix[i+2] * .11;
 			pix[i  ] = grayscale;     // red
 			pix[i+1] = grayscale;     // green
 			pix[i+2] = grayscale;     // blue	
-			// alpha
 		}
 	},
 	//otsu
-	binarization : function(imgData, width, height){
+	binarization : function(data, width, height){
 		var area, areaBefore = 0, areaAfter = 0; //图像总点数，前景点数， 后景点数（areaBefore + areaAfter = area） 
 		var averageBefore = 0, averageBefore = 0;
 		var variance = 0, varianceMax = 0;
@@ -52,7 +55,7 @@ preProcess.prototype = {
 		var i, j, k;
 		for( i = 0; i < height; i++){
 			for(var j = 0; j < width; j ++){
-				var index = imgData.data[i * width * 4 + j * 4];
+				var index = data[i * width * 4 + j * 4];
 				grayscaleMap[index]++;
 			}
 		}
@@ -103,17 +106,17 @@ preProcess.prototype = {
 		for(i = 0; i < height; i++){
 			for(j = 0; j < width; j++){
 				var index = i * width * 4 + j * 4;
-				if(imgData.data[index] >= thresh){
+				if(data[index] >= thresh){
 					//更新下bitmap
-					this.imgBitmap[i * width + j] = 0;
-					imgData.data[index] = 255;
-					imgData.data[index + 1] = 255;
-					imgData.data[index + 2] = 255;
+					this.imgBitmap.set(j, i, 0);
+					data[index] = 255;
+					data[index + 1] = 255;
+					data[index + 2] = 255;
 				}else{
-					this.imgBitmap[i * width + j] = 1;
-					imgData.data[index] = 0;
-					imgData.data[index + 1] = 0;
-					imgData.data[index + 2] = 0;
+					this.imgBitmap.set(j, i, 1);
+					data[index] = 0;
+					data[index + 1] = 0;
+					data[index + 2] = 0;
 				}
 				
 			}

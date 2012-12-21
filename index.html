@@ -1,61 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-
+<meta charset="UTF-8" />
 <title>qrcode</title>
 <style>
 *{margin:0;padding:0;}
 </style>
 </head>
 <body>
+<video id="video" width="600" height="600" autoplay></video>
 <canvas id="canvas" width="600" height="600"></canvas>
-<canvas id="debuggerCanvas" width="600" height="600"></canvas>
 </body>
+<script type="text/javascript" src="media.js"></script>
+<script type="text/javascript" src="util.js"></script>
 <script type="text/javascript" src="preProcess.js"></script>
 <script type="text/javascript" src="findPattern.js"></script>
 <script type="text/javascript" src="detector.js"></script>
-
 <script type="text/javascript">
+var video = document.getElementById('video');
 var canvas = document.getElementById('canvas');
-var debuggerCanvas = document.getElementById('debuggerCanvas');
 var ctx = canvas.getContext('2d');
-var debuggerCtx = debuggerCanvas.getContext('2d');
-var qr_img = new Image();
-var _st = new Date().getTime();
-qr_img.onload = function(argument) {
-	console.log('img load', new Date().getTime() - _st);
-	ctx.drawImage(qr_img, 0, 0, qr_img.width, qr_img.height);
-	var imgData = window.imgData = ctx.getImageData(0,0,qr_img.width,qr_img.height);
+media.init(video, canvas, {
+	scale : 0.3,
+	onSnapshot : progress
+});
 
-	//灰度
-	grayscale(imgData);
-	//ctx.putImageData(imgData, 0, 0);
-	console.log('grayscale', new Date().getTime() - _st);
+function progress(canvas){
 
-	//中值滤波
-	//medianFilter(imgData, qr_img.width, qr_img.height);
-	//ctx.putImageData(imgData, 0, 0);
-	console.log('median', new Date().getTime() - _st);
-	//二值化
-	var imgBitmap = window.imgBitmap = binarization(imgData, qr_img.width, qr_img.height);
-	debuggerCtx.putImageData(imgData, 0, 0);
-	console.log('binarization', new Date().getTime() - _st);
-	//3个点
-	var points = new Detector(imgBitmap).find();
+	var imgBitmap = new preProcess(ctx.getImageData(0,0,canvas.width, canvas.height));
+	var points = new Detector(imgBitmap);
 
-	debuggerCtx.fillStyle = "rgb(200,0,0)";
-	points.forEach(function(point){
-		debuggerCtx.arc(point.x, point.y, 5, 0, Math.PI*2, true);
-        debuggerCtx.fill();
-	})
-}
 
-//pnvd2525150.jpg
-//100706002924.png
-//qrcode.jpeg
-qr_img.src = "qrcode.jpeg";
-
+} 
 </script>
 </html>
 </html>

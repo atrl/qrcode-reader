@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+<title>qrcode</title>
+<style>
+*{margin:0;padding:0;}
+</style>
+</head>
+<body>
+	<video id="video" width="600" height="600" autoplay></video>
+	<canvas id="canvas" width="600" height="600"></canvas>
+</body>
+<script type="text/javascript" src="media.js"></script>
+<script type="text/javascript">
+var video = document.getElementById('video');
+var canvas = document.getElementById('canvas');
+media.init(video, canvas, {
+	scale : 0.5,
+	onSnapshot : function(canvas){
+		
+	}
+});
+</script>
+</html>
+</html>

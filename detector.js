@@ -2,6 +2,12 @@ var Detector = function (imgBitmap) {
 	this.imgBitmap = imgBitmap;
 	var patternInfo = new FindPattern(imgBitmap).find();
 	if(patternInfo){
+		
+		ctx.fillStyle = "rgb(200,0,0)";
+		patternInfo.forEach(function(point){
+			ctx.arc(point.x, point.y, 5, 0, Math.PI*2, true);
+	        ctx.fill();
+		})
 		this.getInfo(patternInfo);
 	}
 }
@@ -147,8 +153,8 @@ Detector.prototype = {
 		// is "white" so this last point at (toX+xStep,toY) is the right ending. This is really a
 		// small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
 		if (state == 2) {
-		  var diffX1:int = toX + xstep - fromX;
-		  var diffY1:int = toY - fromY;
+		  var diffX1 = toX + xstep - fromX;
+		  var diffY1 = toY - fromY;
 		  return Math.sqrt(diffX1 * diffX1 + diffY1 * diffY1);
 		}
 		// else we didn't find even black-white-black; no estimate is really possible
