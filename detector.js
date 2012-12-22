@@ -1,23 +1,14 @@
-var Detector = function (imgBitmap) {
-	this.imgBitmap = imgBitmap;
-	var patternInfo = new FindPattern(imgBitmap).find();
-	if(patternInfo){
-		
-		ctx.fillStyle = "rgb(200,0,0)";
-		patternInfo.forEach(function(point){
-			ctx.arc(point.x, point.y, 5, 0, Math.PI*2, true);
-	        ctx.fill();
-		})
-		this.getInfo(patternInfo);
-	}
+var Detector = function (imgMatrix, patternInfo) {
+	this.imgMatrix = imgMatrix;
+	this.patternInfo = patternInfo;
 }
 
 Detector.prototype = {
 
-	getInfo : function(patternInfo){
-		var topLeft = patternInfo.topLeft;
-		var topRight = patternInfo.topRight;
-		var bottomLeft = patternInfo.bottomLeft;
+	getCodeMatrix : function(){
+		var topLeft = this.patternInfo.topLeft;
+		var topRight = this.patternInfo.topRight;
+		var bottomLeft = this.patternInfo.bottomLeft;
 
 		//获取topLeft和topRight的距离
 		var moduleSize = this.calculateModuleSize(topLeft, topRight, bottomLeft);
@@ -26,8 +17,8 @@ Detector.prototype = {
 		}
 		//计算二维码尺寸
 		var dimension = this.computeDimension(topLeft, topRight, bottomLeft, moduleSize);
-
-
+		this.codeMatrix = new BitMatrix(dimension, dimension);
+		return this.codeMatrix;
 
 	},
 
@@ -50,7 +41,7 @@ Detector.prototype = {
 		return dimension;
 	},
 
-	//form zXing
+	//from zXing
 	calculateModuleSize : function(topLeft, topRight, bottomLeft){
 		var moduleSize1 = this.calculateModuleSizeOneWay(topLeft, topRight);
         var moduleSize2 = this.calculateModuleSizeOneWay(topLeft, bottomLeft);
@@ -71,14 +62,14 @@ Detector.prototype = {
 	},
 
 	sizeOfBlackWhiteBlackRunBothWays : function(fromX, fromY, toX, toY){
-		var size = this.sizeOfBlackWhiteBlackRun(fromX, fromY, toX, toY);
+		var result = this.sizeOfBlackWhiteBlackRun(fromX, fromY, toX, toY);
 		var scale = 1;
 		var otherToX = fromX - (toX - fromX);
 		if(otherToX < 0){
 			scale = fromX / (fromX - otherToX);
 			otherToX = 0;
-		}else if(otherToX >= this.imgBitmap.width){
-			scale = (this.imgBitmap.width - 1 - fromX) / (otherToX - fromX);
+		}else if(otherToX >= this.imgMatrix.width){
+			scale = (this.imgMatrix.width - 1 - fromX) / (otherToX - fromX);
 		}
 
 		var otherToY = (fromY - (toY - fromY) * scale);
@@ -87,11 +78,11 @@ Detector.prototype = {
 		 if (otherToY < 0) {
 			scale = fromY / (fromY - otherToY);
 			otherToY = 0;
-        } else if (otherToY >= this.imgBitmap.height) {
+        } else if (otherToY >= this.imgMatrix.height) {
 			scale = (image.getHeight() - 1 - fromY) /  (otherToY - fromY);
 			otherToY = image.getHeight() - 1;
         }
-        otherToX = int(fromX + (otherToX - fromX) * scale);
+        otherToX = (fromX + (otherToX - fromX) * scale) >> 0;
         
         result += this.sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
         return result - 1;
@@ -114,18 +105,18 @@ Detector.prototype = {
 		var dy = Math.abs(toY - fromY);
 
 		var error = -dx >> 1;
-		var xstep = formX < toX ? 1 : -1;
+		var xstep = fromX < toX ? 1 : -1;
 		var ystep = fromY < toX ? 1 : -1;
         // In black pixels, looking for white, first or second time.
 		var state = 0;
 		// Loop up until x == toX, but not beyond
 		var xLimit = toX + xstep;
-		for(var x = formX, y = formY; x != xLimit; x += xstep){
+		for(var x = fromX, y = fromY; x != xLimit; x += xstep){
 			var realX = steep ? y : x;
 			var realY = steep ? x : y;
 
 			// Does current pixel mean we have moved white to black or vice versa?
-			var pixl = this.imgBitmap.get(realX, realY);
+			var pixl = this.imgMatrix.get(realX, realY);
 			if(
 				((state == 0) && !pixl)  ||
 			    ((state == 1) && pixl)   ||

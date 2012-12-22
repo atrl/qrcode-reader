@@ -13,9 +13,11 @@
 </body>
 <script type="text/javascript" src="media.js"></script>
 <script type="text/javascript" src="util.js"></script>
+<script type="text/javascript" src="bitMatrix.js"></script>
 <script type="text/javascript" src="preProcess.js"></script>
 <script type="text/javascript" src="findPattern.js"></script>
 <script type="text/javascript" src="detector.js"></script>
+<script type="text/javascript" src="bitSource.js"></script>
 <script type="text/javascript">
 var video = document.getElementById('video');
 var canvas = document.getElementById('canvas');
@@ -25,12 +27,26 @@ media.init(video, canvas, {
 	onSnapshot : progress
 });
 
+var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
+
+var finded =  false;
 function progress(canvas){
-
-	var imgBitmap = new preProcess(ctx.getImageData(0,0,canvas.width, canvas.height));
-	var points = new Detector(imgBitmap);
-
-
+	if(finded) return;
+	raf(function(){
+		var imgMatrix = new preProcess(ctx.getImageData(0, 0, canvas.width, canvas.height));
+		var patternInfo = new FindPattern(imgMatrix).find();
+		if(patternInfo){
+			ctx.fillStyle = "rgb(200,0,0)";
+			ctx.arc(patternInfo.topLeft.x, patternInfo.topLeft.y, 5, 0, Math.PI*2, true);
+			ctx.arc(patternInfo.topRight.x, patternInfo.topRight.y, 5, 0, Math.PI*2, true);
+			ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
+	        ctx.fill();
+			var qrMatrix = new Detector(imgMatrix, patternInfo).getCodeMatrix(patternInfo);
+		}
+		if(qrMatrix){
+			finded = true;
+		}
+	})
 } 
 </script>
 </html>

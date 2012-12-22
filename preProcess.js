@@ -1,30 +1,9 @@
-
-//二值化后的image对象
-var ImgBitmap = function(width, height){
-	this.data = [];
-	this.width = width;
-	this.height = height;
-}
-
-ImgBitmap.prototype = {
-	get : function(x, y){
-		return this.data[this.width * y + x];
-	},
-	set : function(x, y, value){
-		this.data[this.width * y + x] = value;
-	}
-}
-
 //预处理
 var preProcess = function(image){
-	this.imgBitmap = new ImgBitmap(image.width, image.height);
+	this.bitMatrix = new BitMatrix(image.width, image.height);
 	this.grayscale(image.data);
 	this.binarization(image.data, image.width, image.height);
-	if(true){
-		ctx.putImageData(image, 0, 0);
-	}
-
-	return this.imgBitmap;
+	return this.bitMatrix;
 }
 
 preProcess.prototype = {
@@ -108,12 +87,12 @@ preProcess.prototype = {
 				var index = i * width * 4 + j * 4;
 				if(data[index] >= thresh){
 					//更新下bitmap
-					this.imgBitmap.set(j, i, 0);
+					this.bitMatrix.set(j, i, 0);
 					data[index] = 255;
 					data[index + 1] = 255;
 					data[index + 2] = 255;
 				}else{
-					this.imgBitmap.set(j, i, 1);
+					this.bitMatrix.set(j, i, 1);
 					data[index] = 0;
 					data[index + 1] = 0;
 					data[index + 2] = 0;
@@ -122,5 +101,4 @@ preProcess.prototype = {
 			}
 		}
 	}
-
 }

@@ -1,6 +1,5 @@
 /**
  * 图形探测
- * @param {object} imgBitmap
  */
 
 //常量
@@ -28,10 +27,10 @@ Pattern.prototype.aboutEquals = function(moduleSize,  x,  y){
 
 
 //查询
-function FindPattern(imgBitmap) {
-	this.imgBitmap = imgBitmap;
-	this.height = imgBitmap.height;
-	this.width = imgBitmap.width;
+function FindPattern(imgMatrix) {
+	this.bitMatrix = imgMatrix;
+	this.height = this.bitMatrix.height;
+	this.width = this.bitMatrix.width;
 }
 
 
@@ -54,7 +53,7 @@ FindPattern.prototype = {
 			this.curState = 0;
 			for(this.x = 0; this.x < this.width; this.x++) {
 				//深色区
-				if(this.imgBitmap.get(this.x, this.y)) {
+				if(this.bitMatrix.get(this.x, this.y)) {
 					//从white -> black 增加当前的curState
 					if((this.curState & 1) == 1) {
 						this.curState++;
@@ -114,7 +113,7 @@ FindPattern.prototype = {
 
 		if (centerY){
 			//再次验证x坐标的真实性
-			centerX = this.getY(Math.floor(centerX), Math.floor(centerY), this.states[2], totalModuleSize);
+			centerX = this.getX(Math.floor(centerX), Math.floor(centerY), this.states[2], totalModuleSize);
 			if(centerX){
 				//估计模块大小
 				var estimatedModuleSize = totalModuleSize / 7;
@@ -233,7 +232,7 @@ FindPattern.prototype = {
 					this.x++;
 				}
 				//跳过所有中间的浅色区
-				while (this.x < this.width && !this.imgBitmap.get(this.x, this.y));
+				while (this.x < this.width && !this.bitMatrix.get(this.x, this.y));
 				//修正正深色区的位置
 				this.x--;
 			}
@@ -313,7 +312,7 @@ FindPattern.prototype = {
 		var y = startY;
 		//从y轴中心位置探测图形开始
 		//统计中心位置探测图形 3 的位置探测图形数
-		while (y >= 0 && this.imgBitmap.get(centerX, y)){
+		while (y >= 0 && this.bitMatrix.get(centerX, y)){
 			statesY[2]++;
 			y--;
 		}
@@ -323,7 +322,7 @@ FindPattern.prototype = {
 
 
 		//第一个白位置探测图形的个数 不能比中心黑位置探测图形大
-		while (y >= 0 && !this.imgBitmap.get(centerX, y) && statesY[1] <= maxCount){
+		while (y >= 0 && !this.bitMatrix.get(centerX, y) && statesY[1] <= maxCount){
 			statesY[1]++;
 			y--;
 		}
@@ -334,7 +333,7 @@ FindPattern.prototype = {
 
 
 		//第一个黑位置探测图形
-		while (y >= 0 && this.imgBitmap.get(centerX, y) && statesY[0] <= maxCount){
+		while (y >= 0 && this.bitMatrix.get(centerX, y) && statesY[0] <= maxCount){
 			statesY[0]++;
 			y--;
 		}
@@ -347,7 +346,7 @@ FindPattern.prototype = {
 		//从中间往后查找
 		y = startY + 1;
 		//统计完整的中心位置探测图形的位置探测图形数
-		while (y < this.height && this.imgBitmap.get(centerX, y)){
+		while (y < this.height && this.bitMatrix.get(centerX, y)){
 			statesY[2]++;
 			y++;
 		}
@@ -357,7 +356,7 @@ FindPattern.prototype = {
 
 
 		//第二个白位置探测图形
-		while (y < this.height && !this.imgBitmap.get(centerX, y) && statesY[3] < maxCount){
+		while (y < this.height && !this.bitMatrix.get(centerX, y) && statesY[3] < maxCount){
 			statesY[3]++;
 			y++;
 		}
@@ -366,7 +365,7 @@ FindPattern.prototype = {
 		}
 
 
-		while (y < this.width && this.imgBitmap.get(centerX, y) && statesY[4] < maxCount){
+		while (y < this.width && this.bitMatrix.get(centerX, y) && statesY[4] < maxCount){
 			statesY[4]++;
 			y++;
 		}
@@ -394,15 +393,15 @@ FindPattern.prototype = {
 		var statesX = QUtil.getStates(5);
 		
 		var x = startX;
-		while (x >= 0 && this.imgBitmap.get(x, centerY)){
+		while (x >= 0 && this.bitMatrix.get(x, centerY)){
 			statesX[2]++;
 			x--;
 		}
-		if (j < 0){
+		if (x < 0){
 			return NaN;
 		}
 
-		while (x >= 0 && !this.imgBitmap.get(x, centerY) && statesX[1] <= maxCount){
+		while (x >= 0 && !this.bitMatrix.get(x, centerY) && statesX[1] <= maxCount){
 			statesX[1]++;
 			x--;
 		}
@@ -410,7 +409,7 @@ FindPattern.prototype = {
 			return NaN;
 		}
 
-		while (x >= 0 && this.imgBitmap.get(x, centerY) && statesX[0] <= maxCount){
+		while (x >= 0 && this.bitMatrix.get(x, centerY) && statesX[0] <= maxCount){
 			statesX[0]++;
 			x--;
 		}
@@ -419,15 +418,15 @@ FindPattern.prototype = {
 		}
 		
 		x = startX + 1;
-		while (x < this.width && this.imgBitmap.get(x, centerY)){
+		while (x < this.width && this.bitMatrix.get(x, centerY)){
 			statesX[2]++;
-			j++;
+			x++;
 		}
 		if (x == this.width){
 			return NaN;
 		}
 
-		while (x < this.width && !this.imgBitmap.get(x, centerY) && statesX[3] < maxCount){
+		while (x < this.width && !this.bitMatrix.get(x, centerY) && statesX[3] < maxCount){
 			statesX[3]++;
 			x++;
 		}
@@ -435,7 +434,7 @@ FindPattern.prototype = {
 			return NaN;
 		}
 
-		while (x < this.width && this.imgBitmap.get(x, centerY) && statesX[4] < maxCount){
+		while (x < this.width && this.bitMatrix.get(x, centerY) && statesX[4] < maxCount){
 			statesX[4]++;
 			x++;
 		}
