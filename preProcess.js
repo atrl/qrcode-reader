@@ -16,6 +16,30 @@ preProcess.prototype = {
 			pix[i+2] = grayscale;     // blue	
 		}
 	},
+	
+	medianFilter : function(data, width, height){
+		//复制一份
+		var bakData = [].slice.call(data, 0);
+		width *= 4;
+		//过滤边界
+		for(var j = 1; j < height - 1; j++){
+			for(var i = 4; i < width - 4; i+=4){
+				var k = 0;
+				var arr = [];//3*3
+				var average = 0;
+				for(var jj = j - 1; jj < j+2; ++jj){
+					for(var ii = i - 4; ii < i +8; ii+=4){
+						arr[k++] = bakData[jj * width + ii];
+					}
+				}
+				arr.sort();
+				data[j * width + i] = arr[4];
+				data[j * width + i + 1] = arr[4];
+				data[j * width + i + 2] = arr[4];
+			}
+		}
+	},
+
 	//otsu
 	binarization : function(data, width, height){
 		var area, areaBefore = 0, areaAfter = 0; //图像总点数，前景点数， 后景点数（areaBefore + areaAfter = area） 
