@@ -4,7 +4,7 @@ var BitSource = function(codeWord){
 		bit += BitSource.prefixbit(v.toString(2), 8);
 	});
 
-
+	this.index = 0;
 	this.bit = bit;
 }
 BitSource.prefixbit = function (num, length) {
@@ -13,8 +13,8 @@ BitSource.prefixbit = function (num, length) {
 }
 BitSource.prototype = {
 	readBits : function(length){
-		var bit = this.bit.substring(0, length);
-		this.bit = this.bit.substring(length);
+		var bit = this.bit.substring(this.index, length);
+		this.index += length;
 		return parseInt(bit,2);
 	}
 }
