@@ -16,6 +16,7 @@
 <script type="text/javascript" src="bitMatrix.js"></script>
 <script type="text/javascript" src="preProcess.js"></script>
 <script type="text/javascript" src="findPattern.js"></script>
+<script type="text/javascript" src="perspectiveTransform.js"></script>
 <script type="text/javascript" src="detector.js"></script>
 <script type="text/javascript" src="bitSource.js"></script>
 <script type="text/javascript">
@@ -41,11 +42,9 @@ function progress(canvas){
 			ctx.arc(patternInfo.topRight.x, patternInfo.topRight.y, 5, 0, Math.PI*2, true);
 			ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
 	        ctx.fill();
-			var qrMatrix = new Detector(imgMatrix, patternInfo).getCodeMatrix(patternInfo);
 		}
-		if(qrMatrix){
-			finded = true;
-		}
+		var qrMatrix = new Detector(imgMatrix, patternInfo).getCodeMatrix(patternInfo);
+		finded = true;
 	})
 } 
 </script>

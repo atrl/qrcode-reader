@@ -91,7 +91,7 @@ FindPattern.prototype = {
 		}
 
 		if (this.patterns.length < 3){
-			return null;
+			throw 'pattern no find';
 		}else{
 			//有多个图形的 选择最合适的
 			this.findBestPatterns();

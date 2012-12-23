@@ -87,6 +87,7 @@ Detector.prototype = {
         result += this.sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
         return result - 1;
 	},
+	
 	sizeOfBlackWhiteBlackRun : function(fromX, fromY, toX, toY){
         // Mild variant of Bresenham's algorithm;
         //http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
