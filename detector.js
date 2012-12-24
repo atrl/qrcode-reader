@@ -17,9 +17,17 @@ Detector.prototype = {
 		}
 		//计算二维码尺寸
 		var dimension = this.computeDimension(topLeft, topRight, bottomLeft, moduleSize);
+		var version = version.VERSION_TABLE[((dimension - 17) >> 2) - 1]
+		var modulesBetweenFPCenters = dimension - 7;
+		var alignmentPattern;
+		if(version.aLigmentPattern.length){
+
+		}else{
+
+		}
+
 		this.codeMatrix = new BitMatrix(dimension, dimension);
 		return this.codeMatrix;
-
 	},
 
 	computeDimension : function(topLeft, topRight, bottomLeft, moduleSize) {
@@ -36,9 +44,40 @@ Detector.prototype = {
 				dimension--;
 				break;
 			case 3:
-				throw "dimension";
+				throw "error dimension";
 		}
+
+		if (dimension % 4 != 1){
+			throw 'error dimension';
+		}
+		var verison = (dimension - 17) >> 2;
+		if(verison < 1 || verison > 40){
+			throw 'error dimension';
+		}
+
 		return dimension;
+	},
+
+	createTransform : function(topLeft, topRight, bottomLeft, alignmentPattern, dimension) {
+		var dimMinusThree = dimension - 3.5;
+		var bottomRightX;
+		var bottomRightY;
+		var sourceBottomRightX;
+		var sourceBottomRightY;
+		if(alignmentPattern != null) {
+			bottomRightX = alignmentPattern.x;
+			bottomRightY = alignmentPattern.y;
+			sourceBottomRightX = sourceBottomRightY = dimMinusThree - 3.0;
+		} else {
+			// Don't have an alignment pattern, just make up the bottom-right point
+			bottomRightX = (topRight.x - topLeft.x) + bottomLeft.x;
+			bottomRightY = (topRight.y - topLeft.y) + bottomLeft.y;
+			sourceBottomRightX = sourceBottomRightY = dimMinusThree;
+		}
+
+		var transform = PerspectiveTransform.quadrilateralToQuadrilateral(3.5, 3.5, dimMinusThree, 3.5, sourceBottomRightX, sourceBottomRightY, 3.5, dimMinusThree, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomRightX, bottomRightY, bottomLeft.x, bottomLeft.y);
+
+		return transform;
 	},
 
 	//from zXing

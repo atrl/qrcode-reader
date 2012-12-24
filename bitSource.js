@@ -13,7 +13,7 @@ BitSource.prefixbit = function (num, length) {
 }
 BitSource.prototype = {
 	readBits : function(length){
-		var bit = this.bit.substring(this.index, length);
+		var bit = this.bit.substring(this.index, this.index + length);
 		this.index += length;
 		return parseInt(bit,2);
 	}
