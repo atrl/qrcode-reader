@@ -5,7 +5,7 @@ var Detector = function (imgMatrix, patternInfo) {
 
 Detector.prototype = {
 
-	getCodeMatrix : function(){
+	process : function(){
 		var topLeft = this.patternInfo.topLeft;
 		var topRight = this.patternInfo.topRight;
 		var bottomLeft = this.patternInfo.bottomLeft;
@@ -17,17 +17,33 @@ Detector.prototype = {
 		}
 		//计算二维码尺寸
 		var dimension = this.computeDimension(topLeft, topRight, bottomLeft, moduleSize);
-		var version = version.VERSION_TABLE[((dimension - 17) >> 2) - 1]
+		var version = version.VERSION_TABLE[((dimension - 17) >> 2) - 1];
+		//2个位置定位图形中心点距离
 		var modulesBetweenFPCenters = dimension - 7;
+		//寻找定位图形
 		var alignmentPattern;
-		if(version.aLigmentPattern.length){
-
-		}else{
-
+		if(version.aligmentPattern.length){
+			// Guess where a "bottom right" finder pattern would have been
+			var bottomRightX = topRight.x - topLeft.x + bottomLeft.x;
+			var bottomRightY = topRight.y - topLeft.y + bottomLeft.y;
+			
+			// Estimate that alignment pattern is closer by 3 modules
+			// from "bottom right" to known top left location
+			var correctionToTopLeft = 1 - 3 /  modulesBetweenFPCenters;
+			var estAlignmentX = Math.floor (topLeft.x + correctionToTopLeft * (bottomRightX - topLeft.x));
+			var estAlignmentY = Math.floor (topLeft.y + correctionToTopLeft * (bottomRightY - topLeft.y));
+			
+			// Kind of arbitrary -- expand search radius before giving up
+			for (var i = 4; i <= 16; i <<= 1){
+				alignmentPattern = this.findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY,  i);
+				break;
+			}
 		}
 
-		this.codeMatrix = new BitMatrix(dimension, dimension);
-		return this.codeMatrix;
+		//创建透视变换
+		var transform = this.createTransform(topLeft, topRight, bottomLeft, alignmentPattern, dimension);
+		
+		//获取变换后二维码信息
 	},
 
 	computeDimension : function(topLeft, topRight, bottomLeft, moduleSize) {
@@ -64,7 +80,7 @@ Detector.prototype = {
 		var bottomRightY;
 		var sourceBottomRightX;
 		var sourceBottomRightY;
-		if(alignmentPattern != null) {
+		if(alignmentPattern) {
 			bottomRightX = alignmentPattern.x;
 			bottomRightY = alignmentPattern.y;
 			sourceBottomRightX = sourceBottomRightY = dimMinusThree - 3.0;
@@ -78,6 +94,21 @@ Detector.prototype = {
 		var transform = PerspectiveTransform.quadrilateralToQuadrilateral(3.5, 3.5, dimMinusThree, 3.5, sourceBottomRightX, sourceBottomRightY, 3.5, dimMinusThree, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomRightX, bottomRightY, bottomLeft.x, bottomLeft.y);
 
 		return transform;
+	},
+
+	findAlignmentInRegion : function(overallEstModuleSize,  estAlignmentX,  estAlignmentY,  allowanceFactor){
+		var allowance = allowanceFactor * overallEstModuleSize >> 0;
+		var alignmentAreaLeftX = Math.max(0, estAlignmentX - allowance);
+		var alignmentAreaRightX = Math.min(qrcode.width - 1, estAlignmentX + allowance);
+		if(alignmentAreaRightX - alignmentAreaLeftX < overallEstModuleSize * 3) {
+			throw "Error";
+		}
+
+		var alignmentAreaTopY = Math.max(0, estAlignmentY - allowance);
+		var alignmentAreaBottomY = Math.min(qrcode.height - 1, estAlignmentY + allowance);
+
+		var alignmentFinder = new findAlignmentPattern(this.imgMatrix, alignmentAreaLeftX, alignmentAreaTopY, alignmentAreaRightX - alignmentAreaLeftX, alignmentAreaBottomY - alignmentAreaTopY, overallEstModuleSize);
+		return alignmentFinder.find();
 	},
 
 	//from zXing

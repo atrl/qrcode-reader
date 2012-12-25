@@ -8,24 +8,6 @@ var MAX_MODULES = 57;
 var INTEGER_MATH_SHIFT = 8;
 var CENTER_QUORUM = 2;
 
-
-//位置探测图形类
-function Pattern(x, y, estimatedModuleSize){
-	this.x = x;
-	this.y = y;
-	this.count = 1;
-	this.estimatedModuleSize = estimatedModuleSize;
-}
-//验证图形是否相同
-Pattern.prototype.aboutEquals = function(moduleSize,  x,  y){
-	if (Math.abs(y - this.y) <= moduleSize && Math.abs(x - this.x) <= moduleSize){
-		var moduleSizeDiff = Math.abs(moduleSize - this.estimatedModuleSize);
-		return moduleSizeDiff <= 1.0 || moduleSizeDiff / this.estimatedModuleSize <= 1.0;
-	}
-	return false;
-}
-
-
 //查询
 function FindPattern(imgMatrix) {
 	this.bitMatrix = imgMatrix;

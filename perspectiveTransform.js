@@ -1,5 +1,5 @@
 /**
- * 透视变化
+ * 透视变换
  */
 
 function PerspectiveTransform(a11, a21, a31, a12, a22, a32, a13, a23, a33) {
