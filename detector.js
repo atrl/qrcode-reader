@@ -31,8 +31,8 @@ Detector.prototype = {
 	},
 
 	computeDimension : function(topLeft, topRight, bottomLeft, moduleSize) {
-		var tltrCentersDimension = Math.round(QUtil.getDistance(topLeft, topRight) / moduleSize);
-		var tlblCentersDimension = Math.round(QUtil.getDistance(topLeft, bottomLeft) / moduleSize);
+		var tltrCentersDimension = round(QUtil.getDistance(topLeft, topRight) / moduleSize);
+		var tlblCentersDimension = round(QUtil.getDistance(topLeft, bottomLeft) / moduleSize);
 		var dimension = ((tltrCentersDimension + tlblCentersDimension) >> 1) + 7;
 		//
 		switch (dimension & 0x03) { // mod 4
@@ -88,8 +88,8 @@ Detector.prototype = {
 	},
 
 	calculateModuleSizeOneWay : function(pattern1 , pattern2){
-		var size1 = this.sizeOfBlackWhiteBlackRunBothWays(pattern1.x>>0, pattern1.y>>0, pattern2.x>>0, pattern2.y>>0);
-		var size2 = this.sizeOfBlackWhiteBlackRunBothWays(pattern1.x>>0, pattern1.y>>0, pattern2.x>>0, pattern2.y>>0);
+		var size1 = this.sizeOfBlackWhiteBlackRunBothWays(pattern1.x, pattern1.y, pattern2.x, pattern2.y);
+		var size2 = this.sizeOfBlackWhiteBlackRunBothWays(pattern1.x, pattern1.y, pattern2.x, pattern2.y);
 
 		if(isNaN(size1)){
 			return size2 / 7;
@@ -111,15 +111,15 @@ Detector.prototype = {
 			scale = (this.imgMatrix.width - 1 - fromX) / (otherToX - fromX);
 		}
 
-		var otherToY = (fromY - (toY - fromY) * scale) >> 0;
+		var otherToY = (fromY - (toY - fromY) * scale);
 
 		scale = 1;
 		 if (otherToY < 0) {
 			scale = fromY / (fromY - otherToY);
 			otherToY = 0;
         } else if (otherToY >= this.imgMatrix.height) {
-			scale = (this.imgMatrix.height - 1 - fromY) /  (otherToY - fromY);
-			otherToY = this.imgMatrix.height - 1;
+			scale = (image.getHeight() - 1 - fromY) /  (otherToY - fromY);
+			otherToY = image.getHeight() - 1;
         }
         otherToX = (fromX + (otherToX - fromX) * scale) >> 0;
         
@@ -149,40 +149,46 @@ Detector.prototype = {
 		var ystep = fromY < toX ? 1 : -1;
         // In black pixels, looking for white, first or second time.
 		var state = 0;
-
-		for(var x = fromX, y = fromY; x != toX; x += xstep) {
-
+		// Loop up until x == toX, but not beyond
+		var xLimit = toX + xstep;
+		for(var x = fromX, y = fromY; x != xLimit; x += xstep){
 			var realX = steep ? y : x;
 			var realY = steep ? x : y;
-			var pixl = this.imgMatrix.get(realX, realY);
-			if(state == 1) {
-				// In white pixels, looking for black
-				if(pixl) {
-					state++;
-				}
-			} else {
-				if(!pixl) {
-					state++;
-				}
-			}
 
-			if(state == 3) {
-				// Found black, white, black, and stumbled back onto white; done
-				var diffX = x - fromX;
-				var diffY = y - fromY;
-				return Math.sqrt((diffX * diffX + diffY * diffY));
+			// Does current pixel mean we have moved white to black or vice versa?
+			var pixl = this.imgMatrix.get(realX, realY);
+			if(
+				((state == 0) && !pixl)  ||
+			    ((state == 1) && pixl)   ||
+			    ((state == 2) && !pixl)
+			){
+				if (state == 2) 
+				{
+					var diffX = x - fromX;
+					var diffY = y - fromY;
+					return Math.sqrt(diffX * diffX + diffY * diffY);
+				}
+				state++;
+
 			}
 			error += dy;
-			if(error > 0) {
-				if(y == toY) {
+			if (error > 0){
+				if (y == toY){
 					break;
 				}
 				y += ystep;
 				error -= dx;
 			}
 		}
-		var diffX2 = toX - fromX;
-		var diffY2 = toY - fromY;
-		return Math.sqrt((diffX2 * diffX2 + diffY2 * diffY2));
+		// Found black-white-black; give the benefit of the doubt that the next pixel outside the image
+		// is "white" so this last point at (toX+xStep,toY) is the right ending. This is really a
+		// small approximation; (toX+xStep,toY+yStep) might be really correct. Ignore this.
+		if (state == 2) {
+		  var diffX1 = toX + xstep - fromX;
+		  var diffY1 = toY - fromY;
+		  return Math.sqrt(diffX1 * diffX1 + diffY1 * diffY1);
+		}
+		// else we didn't find even black-white-black; no estimate is really possible
+		return NaN;
 	}
 }
