@@ -45,7 +45,7 @@ function progress(canvas){
 			ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
 	        ctx.fill();
 		}
-		var qrMatrix = new Detector(imgMatrix, patternInfo).getCodeMatrix(patternInfo);
+		var qrMatrix = new Detector(imgMatrix, patternInfo).process();
 		finded = true;
 	})
 } 

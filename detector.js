@@ -17,12 +17,12 @@ Detector.prototype = {
 		}
 		//计算二维码尺寸
 		var dimension = this.computeDimension(topLeft, topRight, bottomLeft, moduleSize);
-		var version = version.VERSION_TABLE[((dimension - 17) >> 2) - 1];
+		var ver = version.VERSION_TABLE[((dimension - 17) >> 2) - 1];
 		//2个位置定位图形中心点距离
 		var modulesBetweenFPCenters = dimension - 7;
 		//寻找定位图形
 		var alignmentPattern;
-		if(version.aligmentPattern.length){
+		if(ver.aligmentPattern.length){
 			// Guess where a "bottom right" finder pattern would have been
 			var bottomRightX = topRight.x - topLeft.x + bottomLeft.x;
 			var bottomRightY = topRight.y - topLeft.y + bottomLeft.y;
@@ -99,13 +99,13 @@ Detector.prototype = {
 	findAlignmentInRegion : function(overallEstModuleSize,  estAlignmentX,  estAlignmentY,  allowanceFactor){
 		var allowance = allowanceFactor * overallEstModuleSize >> 0;
 		var alignmentAreaLeftX = Math.max(0, estAlignmentX - allowance);
-		var alignmentAreaRightX = Math.min(qrcode.width - 1, estAlignmentX + allowance);
+		var alignmentAreaRightX = Math.min(this.imgMatrix.width - 1, estAlignmentX + allowance);
 		if(alignmentAreaRightX - alignmentAreaLeftX < overallEstModuleSize * 3) {
 			throw "Error";
 		}
 
 		var alignmentAreaTopY = Math.max(0, estAlignmentY - allowance);
-		var alignmentAreaBottomY = Math.min(qrcode.height - 1, estAlignmentY + allowance);
+		var alignmentAreaBottomY = Math.min(this.imgMatrix.height - 1, estAlignmentY + allowance);
 
 		var alignmentFinder = new findAlignmentPattern(this.imgMatrix, alignmentAreaLeftX, alignmentAreaTopY, alignmentAreaRightX - alignmentAreaLeftX, alignmentAreaBottomY - alignmentAreaTopY, overallEstModuleSize);
 		return alignmentFinder.find();
