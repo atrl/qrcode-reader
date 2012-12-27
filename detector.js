@@ -20,7 +20,7 @@ Detector.prototype = {
 		var ver = version.VERSION_TABLE[((dimension - 17) >> 2) - 1];
 		//2个位置定位图形中心点距离
 		var modulesBetweenFPCenters = dimension - 7;
-		//寻找定位图形
+		//寻找校正图形
 		var alignmentPattern;
 		if(ver.aligmentPattern.length){
 			// Guess where a "bottom right" finder pattern would have been
@@ -37,6 +37,10 @@ Detector.prototype = {
 			for (var i = 4; i <= 16; i <<= 1){
 				alignmentPattern = this.findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY,  i);
 				break;
+			}
+			if(alignmentPattern){
+				ctx.arc(alignmentPattern.x, alignmentPattern.y, 3, 0, Math.PI*2, true);
+			    ctx.fill();
 			}
 		}
 

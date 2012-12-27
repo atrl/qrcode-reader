@@ -1,5 +1,5 @@
 /**
- * 寻找校验图形
+ * 寻找校正图形
  */
 
 var findAlignmentPattern = function(imgMatrix,  startX,  startY,  width,  height,  moduleSize){
@@ -17,9 +17,9 @@ findAlignmentPattern.prototype = {
 		var endX = this.startX + this.width;
 		var middleY = this.startY + (this.height >> 1);
 		for(var i = 0; i < this.height; i++) {
-			this.y = (middleY + i % 2 == 0 ? 1 : -1) * ((i + 1) >> 1);;
-
-			this.states = QUtil.getStates(5);
+			this.y = middleY + (i % 2 & 1 ? 1 : -1) * ((i + 1) >> 1);;
+			//校正图形没有分隔符判断 1-1-1-1-1会被内容区域污染只判断1-1-1
+			this.states = QUtil.getStates(3);
 
 			this.x = this.startX;
 			// Burn off leading white pixels before anything else; if we start in the middle of
@@ -38,9 +38,7 @@ findAlignmentPattern.prototype = {
 					} else {
 						// Counting white pixels
 						if(this.curState == 2) {
-							// A winner?
-							if(this.foundPatternCross(this.states)) {
-								// Yes
+							if(this.checkRatio(this.states)) {
 								var pattern = this.findPattern();
 								if(pattern) {
 									return pattern;
@@ -62,7 +60,7 @@ findAlignmentPattern.prototype = {
 					}
 					this.states[this.curState]++;
 				}
-				x++;
+				this.x++;
 			}
 			if(this.checkRatio(this.states)) {
 				var pattern = this.findPattern();
@@ -86,13 +84,13 @@ findAlignmentPattern.prototype = {
 		this.states.forEach(function(v, i){
 			totalModuleSize+= v;
 		});
-		var centerX = this.centerFromEnd(this.states, this.x);
+		var centerX = this.getCenterFromEnd(this.states, this.x);
 		var centerY = this.getY(this.y, Math.floor(centerX), 2 * this.states[1], totalModuleSize);
 		if(centerY) {
 			var estimatedModuleSize = totalModuleSize / 3;
 			for(var i = 0, pattern; pattern = this.patterns[i]; i++) {
 				if(pattern.aboutEquals(estimatedModuleSize, centerX, centerY)) {
-					return new new Pattern(centerX, centerY, estimatedModuleSize);
+					return new Pattern(centerX, centerY, estimatedModuleSize);
 				}
 			}
 			// Hadn't found this before; save it
@@ -114,7 +112,7 @@ findAlignmentPattern.prototype = {
 
 	getY : function(startY, centerX, maxCount, totalModuleSize) {
 
-		var statesY = QUtil.getStates(5);
+		var statesY = QUtil.getStates(3);
 
 		// Start counting up from center
 		var y = startY;
@@ -127,7 +125,7 @@ findAlignmentPattern.prototype = {
 			return NaN;
 		}
 		while(y >= 0 && !this.imgMatrix.get(centerX, y) && statesY[0] <= maxCount) {
-			stateCount[0]++;
+			statesY[0]++;
 			y--;
 		}
 		if(statesY[0] > maxCount) {
@@ -136,14 +134,14 @@ findAlignmentPattern.prototype = {
 
 		// Now also count down from center
 		y = startY + 1;
-		while(y < this.height && this.imgMatrix.get(centerX, y) && statesY[1] <= maxCount) {
+		while(y < this.imgMatrix.height && this.imgMatrix.get(centerX, y) && statesY[1] <= maxCount) {
 			statesY[1]++;
 			y++;
 		}
-		if(y == this.height || stateCount[1] > maxCount) {
+		if(y == this.imgMatrix.height || statesY[1] > maxCount) {
 			return NaN;
 		}
-		while(y < this.height && !this.imgMatrix.get(centerX, y) && statesY[2] <= maxCount) {
+		while(y < this.imgMatrix.height && !this.imgMatrix.get(centerX, y) && statesY[2] <= maxCount) {
 			statesY[2]++;
 			y++;
 		}

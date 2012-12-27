@@ -270,7 +270,7 @@ Decode.prototype = {
 		this.clearFinderPattern(0, 0);
 		this.clearFinderPattern(this.dimension - 7, 0);
 		this.clearFinderPattern(0, this.dimension - 7);
-		//过滤校验图形
+		//过滤校正图形
 		this.clearALigmentPattern();
 		//过滤定位图形
 		this.clearTimingPattern();
@@ -341,12 +341,12 @@ Decode.prototype = {
 		}		
 	},
 
-	//清理校验图形
+	//清理校正图形
 	clearALigmentPattern : function(){
 		var aLigmentPattern = version.VERSION_TABLE[this.version - 1].aLigmentPattern;
 		for (var y = 0; y < aLigmentPattern.length; y++) {		
 			for (var x = 0; x < aLigmentPattern.length; x++) {
-				//位置探测图形周围没有校验图形
+				//位置探测图形周围没有校正图形
 				if(
 					(x == 0 && y == 0) || 
 					(x == 0 && y == aLigmentPattern.length - 1) ||
