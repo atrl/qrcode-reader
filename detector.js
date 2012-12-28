@@ -48,6 +48,31 @@ Detector.prototype = {
 		var transform = this.createTransform(topLeft, topRight, bottomLeft, alignmentPattern, dimension);
 		
 		//获取变换后二维码信息
+		var bits = new BitMatrix(dimension);
+		var points = [];
+		for(var y = 0; y < dimension; y++) {
+			for(var x = 0; x < dimension; x++) {
+				points[x] = [x + 0.5, y + 0.5];
+			}
+			transform.transformPoints1(points);
+			this.checkAndNudgePoints(points);
+			try {
+				for(var x = 0; x < dimension; x ++) {
+					var bit = this.imgMatrix.get(points[x][0] >> 0, points[x][1] >> 0);
+					bits.set(x, y, bit);
+				}
+			} catch(aioobe) {
+				// This feels wrong, but, sometimes if the finder patterns are misidentified, the resulting
+				// transform gets "twisted" such that it maps a straight line of points to a set of points
+				// whose endpoints are in bounds, but others are not. There is probably some mathematical
+				// way to detect this about the transformation that I don't know yet.
+				// This results in an ugly runtime exception despite our clever checks above -- can't have
+				// that. We could check each point's coordinates but that feels duplicative. We settle for
+				// catching and wrapping ArrayIndexOutOfBoundsException.
+				throw "Error.checkAndNudgePoints";
+			}
+		}
+		return bits;
 	},
 
 	computeDimension : function(topLeft, topRight, bottomLeft, moduleSize) {
@@ -115,6 +140,56 @@ Detector.prototype = {
 		return alignmentFinder.find();
 	},
 
+	checkAndNudgePoints : function(points) {
+		// Check and nudge points from start until we see some that are OK:
+		var nudged = true;
+		for(var offset = 0; offset < points.Length && nudged; offset += 2) {
+			var x = Math.floor(points[offset]);
+			var y = Math.floor(points[offset + 1]);
+			if(x < -1 || x > this.imgMatrix.width || y < -1 || y > this.imgMatrix.height) {
+				throw "Error.checkAndNudgePoints ";
+			}
+			nudged = false;
+			if(x == -1) {
+				points[offset] = 0.0;
+				nudged = true;
+			} else if(x == this.imgMatrix.width) {
+				points[offset] = this.imgMatrix.width - 1;
+				nudged = true;
+			}
+			if(y == -1) {
+				points[offset + 1] = 0.0;
+				nudged = true;
+			} else if(y == this.imgMatrix.height) {
+				points[offset + 1] = this.imgMatrix.height - 1;
+				nudged = true;
+			}
+		}
+		// Check and nudge points from end:
+		nudged = true;
+		for(var offset = points.Length - 2; offset >= 0 && nudged; offset -= 2) {
+			var x = Math.floor(points[offset]);
+			var y = Math.floor(points[offset + 1]);
+			if(x < -1 || x > this.imgMatrix.width || y < -1 || y > this.imgMatrix.height) {
+				throw "Error.checkAndNudgePoints ";
+			}
+			nudged = false;
+			if(x == -1) {
+				points[offset] = 0.0;
+				nudged = true;
+			} else if(x == this.imgMatrix.width) {
+				points[offset] = this.imgMatrix.width - 1;
+				nudged = true;
+			}
+			if(y == -1) {
+				points[offset + 1] = 0.0;
+				nudged = true;
+			} else if(y == this.imgMatrix.height) {
+				points[offset + 1] = this.imgMatrix.height - 1;
+				nudged = true;
+			}
+		}
+	},
 	//from zXing
 	calculateModuleSize : function(topLeft, topRight, bottomLeft){
 		var moduleSize1 = this.calculateModuleSizeOneWay(topLeft, topRight);

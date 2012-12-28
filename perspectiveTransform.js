@@ -26,12 +26,12 @@ PerspectiveTransform.prototype = {
         var a31 = this.a31;
         var a32 = this.a32;
         var a33 = this.a33;
-        for(var i = 0; i < max; i += 2) {
-            var x = points[i];
-            var y = points[i + 1];
+        for(var i = 0; i < max; i ++) {
+            var x = points[i][0];
+            var y = points[i][1];
             var denominator = a13 * x + a23 * y + a33;
-            points[i] = (a11 * x + a21 * y + a31) / denominator;
-            points[i + 1] = (a12 * x + a22 * y + a32) / denominator;
+            points[i][0] = (a11 * x + a21 * y + a31) / denominator;
+            points[i][1] = (a12 * x + a22 * y + a32) / denominator;
         }
     },
     transformPoints2: function(xValues, yValues) {

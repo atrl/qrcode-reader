@@ -2,7 +2,7 @@
 var BitMatrix = function(width, height){
 	this.data = [];
 	this.width = width;
-	this.height = height;
+	this.height = height || width;
 }
 
 BitMatrix.prototype = {
