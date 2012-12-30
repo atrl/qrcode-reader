@@ -47,6 +47,8 @@ function progress(canvas){
 		}
 		var qrMatrix = new Detector(imgMatrix, patternInfo).process();
 		finded = true;
+
+		var source = new Decode(qrMatrix),process();
 	})
 } 
 </script>

@@ -22,7 +22,7 @@ Detector.prototype = {
 		var modulesBetweenFPCenters = dimension - 7;
 		//寻找校正图形
 		var alignmentPattern;
-		if(ver.aligmentPattern.length){
+		if(ver.alignmentPattern.length){
 			// Guess where a "bottom right" finder pattern would have been
 			var bottomRightX = topRight.x - topLeft.x + bottomLeft.x;
 			var bottomRightY = topRight.y - topLeft.y + bottomLeft.y;

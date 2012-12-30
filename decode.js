@@ -100,6 +100,10 @@ Decode.prototype = {
 		this.formatinfo = this.getFormatInfo();
 		this.codeWord = this.getCodeWord();
 
+		//将读取的codeword整理到每个ECblock中进行纠错
+		this.dataBlocks = this.getDataBlocks();
+		console.log(this.dataBlocks);
+
 		this.bitSource = new BitSource(this.codeWord);
 		this.source = this.parseSource();
 
@@ -266,20 +270,8 @@ Decode.prototype = {
 	//解析bitmatrix获取ECbBlocks的数据
 	getCodeWord : function(){
 		//过滤功能图形 function pattern 直接设置null 读取时遇到null的直接continue
-		//过滤位置探测图形
-		this.clearFinderPattern(0, 0);
-		this.clearFinderPattern(this.dimension - 7, 0);
-		this.clearFinderPattern(0, this.dimension - 7);
-		//过滤校正图形
-		this.clearALigmentPattern();
-		//过滤定位图形
-		this.clearTimingPattern();
-		//过滤格式信息
-		this.clearFormatInfo();
-		if(this.version >=7){
-			//过滤版本信息
-			this.clearVersionInfo();
-		}
+		this.clearFunctionPattern();
+		
 		var codeWord = [];
 		var arrow = -1;
 		var bitIndex = 7;
@@ -330,84 +322,96 @@ Decode.prototype = {
         return total;
 	},
 
-	//清理位置探测图形
-	clearFinderPattern : function(row, col){
-		for (var r = -1; r <= 7; r++) {
-			if (row + r <= -1 || this.dimension <= row + r) continue;
-			for (var c = -1; c <= 7; c++) {
-				if (col + c <= -1 || this.dimension <= col + c) continue;
-				this.bitMatrix.set(col + c,row + r, null);
-			}		
-		}		
+	/**
+	 * 整理数据块信息
+	 * 读取的codeword由每个数据的每个byte依次排列 
+	 * 如版本号 5-H {块1 : [D1, D2, ...], 块2 : [D12, D13, ...], 块3 : [D23, D24, ...], 块4 : [D35, D36, ...]}
+	 * 得到的顺序为[D1, D12, D23, D35, D2 ...]
+	 * 需要重新整理顺序，进行纠错
+	 */
+	getDataBlocks : function(){
+		var ecbArray = version.VERSION_TABLE[this.version - 1][Decode.ECL_TABLE[this.formatinfo.errorCorrectionLevel]];
+		//统计数据块数量
+		var BlockCount = 0;
+		var dataBlocks = [];
+		for (var i = 0;i < ecbArray.length; i+= 3) {
+          	for(var j = 0; j < ecbArray[i]; j++){
+          		dataBlocks[BlockCount] = {
+          			codeWords : new Array(ecbArray[i + 1]),
+          			numDataCodewords : ecbArray[i + 2],
+          		}
+          		BlockCount++;
+          	}
+        }
+
+        //数据块由多个相同或相差1的bytes构成，bytes少的必须排在前面 需要找到bytes多的在哪个位置将byte补上
+        var shortBlocksTotalCodewords = ecbArray[1];
+        var longerBlockStart = BlockCount - 1;
+        while(longerBlockStart >= 0){
+        	if(dataBlocks[longerBlockStart].codeWords.length == shortBlocksTotalCodewords){
+        		break;
+        	}
+        	longerBlockStart--;
+        }
+        longerBlockStart++;
+
+        var shortBlocksCodeWords = ecbArray[2];
+        var index = 0;
+        //循环依次将bytes放入数据块中
+		for(var i = 0; i < shortBlocksCodeWords; i++) {
+			for(var j = 0; j < BlockCount; j++) {
+				dataBlocks[j].codeWords.push(this.codeWord[index++]);
+			}
+		}
+
+		//补起长数据块的bytes
+		for(var i = longerBlockStart; i < BlockCount; i++) {
+			dataBlocks[i].codeWords.push(this.codeWord[index++]);
+		}
+
+		//纠错信息
+		//每一个数据块的纠错信息长度相同
+		for(var i = shortBlocksCodeWords; i < shortBlocksTotalCodewords; i++) {
+			for(var j = 0; j < BlockCount; j++) {
+				dataBlocks[j].codeWords.push(this.codeWord[index++]);
+			}
+		}
+		return dataBlocks;
 	},
 
-	//清理校正图形
-	clearALigmentPattern : function(){
-		var aLigmentPattern = version.VERSION_TABLE[this.version - 1].aLigmentPattern;
-		for (var y = 0; y < aLigmentPattern.length; y++) {		
-			for (var x = 0; x < aLigmentPattern.length; x++) {
+	//清理功能图形
+	clearFunctionPattern : function(){
+		//清理top-left位置探测图形 + 分隔符 + 格式信息
+		this.bitMatrix.setRegion(0, 0, 9, 9);
+		//清理top-right位置探测图形 + 分隔符 + 格式信息
+		this.bitMatrix.setRegion(this.dimension - 8, 0, 8, 9);
+		//清理bottom-right位置探测图形 + 分隔符 + 格式信息
+		this.bitMatrix.setRegion(0, this.dimension - 8, 9, 8); 
+
+		//清理校正图形
+		var alignmentPattern = version.VERSION_TABLE[this.version - 1].alignmentPattern;
+		for (var y = 0; y < alignmentPattern.length; y++) {		
+			for (var x = 0; x < alignmentPattern.length; x++) {
 				//位置探测图形周围没有校正图形
 				if(
 					(x == 0 && y == 0) || 
-					(x == 0 && y == aLigmentPattern.length - 1) ||
-					(x == aLigmentPattern.length - 1 && y == 0)
+					(x == 0 && y == alignmentPattern.length - 1) ||
+					(x == alignmentPattern.length - 1 && y == 0)
 				){
                   continue;
                 }
-				var row = aLigmentPattern[y];
-				var col = aLigmentPattern[x];			
-				for (var r = -2; r <= 2; r++) {
-					for (var c = -2; c <= 2; c++) {
-						this.bitMatrix.set(col + c,row + r, null);
-					}
-				}
+                this.bitMatrix.setRegion(alignmentPattern[y] - 2, alignmentPattern[x] - 2, 5, 5, null);
 			}
 		}
-	},
 
-	//清理定位图形
-	clearTimingPattern : function() {
-		for (var i = 8; i < this.dimension - 8; i++) {
-			this.bitMatrix.set(i, 6, null);
-			this.bitMatrix.set(6, i, null);
-		}
-	},
+		//清理定位图形
+		this.bitMatrix.setRegion(6, 9, 1, this.dimension - 17, null);
+		this.bitMatrix.setRegion(9, 6, this.dimension - 17, 1, null);
 
-	//清理格式信息
-	clearFormatInfo : function(){
-		var x, y, bitIndex = 0;
-
-		for(y = 0; y <= 5; y++, bitIndex++){
-			this.bitMatrix.set(8, y, null);
-		}
-		this.bitMatrix.set(8, 7, null);
-		this.bitMatrix.set(8, 8, null);
-		this.bitMatrix.set(7, 8, null);
-
-		for(x = 5; x >= 0; x--, bitIndex++){
-			this.bitMatrix.set(x, 8, null);
-		}
-
-		for(x = this.dimension - 1; x >= this.dimension - 8; x--){
-			this.bitMatrix.set(x, 8, null);
-		}
-
-		for(y = this.dimension - 8; y <= this.dimension - 1; y++){
-			this.bitMatrix.set(8, y, null);
-		}
-	},
-
-	//清理版本信息
-	clearVersionInfo : function(){
-		for(var y = 5; y >= 0; y--){
-			for(x = this.dimension - 9; x >= this.dimension - 11; x--){
-				this.bitMatrix.set(x, y, null);
-			}
-		}
-		for(x = 5; x >= 0; x--){
-			for(y = this.dimension - 9; y >= this.dimension - 11; y--){
-				this.bitMatrix.set(x, y, null);
-			}
+		//版本信息
+		if(this.version > 6) {
+			bitMatrix.setRegion(this.dimension - 11, 0, 3, 6, null);
+			bitMatrix.setRegion(0, this.dimension - 11, 6, 3, null);
 		}
 	},
 

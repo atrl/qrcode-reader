@@ -62,6 +62,13 @@ bitMatrix.get = function(x, y){
 bitMatrix.set = function(x, y, value){
 	this[this.width * y + x] = value;
 }
+bitMatrix.setRegion = function(x, y, width, height, value){
+	for(var i = y; i < y + height; i ++){
+		for(var j = x; j < x + width; j ++){
+			this[this.width * i + j] = value;			
+		}
+	}
+}
 
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
@@ -76,7 +83,6 @@ ctx.putImageData(imgData,0,0)
 
 var decode = new Decode(bitMatrix);
 decode.process();
-decode.bitMatrix.get(16,8)
 </script>
 </html>
 </html>
