@@ -5,11 +5,15 @@
 <title>qrcode</title>
 <style>
 *{margin:0;padding:0;}
+#wrap{position:relative;}
+#canvas{position:absolute; top: 0;left:0;}
 </style>
 </head>
 <body>
-<video id="video" width="600" height="600" autoplay></video>
-<canvas id="canvas" width="600" height="600"></canvas>
+<div id="wrap">
+	<video id="video" width="600" height="600" autoplay></video>
+	<canvas id="canvas" width="600" height="600"></canvas>
+</div>
 </body>
 <script type="text/javascript" src="media.js"></script>
 <script type="text/javascript" src="util.js"></script>
@@ -32,31 +36,14 @@
 var video = document.getElementById('video');
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
+var requestAnimationFrame = window.requestAnimationFrame || 
+							window.webkitRequestAnimationFrame || 
+							window.mozRequestAnimationFrame;
+
 media.init(video, canvas, {
 	scale : 0.5,
-	onSnapshot : progress
+	rect : 0.8,
 });
-
-var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
-
-var finded =  false;
-function progress(canvas){
-	if(finded) return;
-	raf(function(){
-		var imgMatrix = new preProcess(ctx.getImageData(0, 0, canvas.width, canvas.height));
-		var patternInfo = new FindPattern(imgMatrix).find();
-		if(patternInfo){
-			ctx.fillStyle = "rgb(200,0,0)";
-			ctx.arc(patternInfo.topLeft.x, patternInfo.topLeft.y, 5, 0, Math.PI*2, true);
-			ctx.arc(patternInfo.topRight.x, patternInfo.topRight.y, 5, 0, Math.PI*2, true);
-			ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
-	        ctx.fill();
-		}
-		finded = true;
-		var qrMatrix = new Detector(imgMatrix, patternInfo).process();
-		var source = new Decode(qrMatrix).process();
-	})
-} 
 </script>
 </html>
 </html>
