@@ -15,18 +15,25 @@
 <script type="text/javascript" src="util.js"></script>
 <script type="text/javascript" src="bitMatrix.js"></script>
 <script type="text/javascript" src="preProcess.js"></script>
+
 <script type="text/javascript" src="pattern.js"></script>
 <script type="text/javascript" src="findPattern.js"></script>
+<script type="text/javascript" src="findAlignment.js"></script>
 <script type="text/javascript" src="perspectiveTransform.js"></script>
 <script type="text/javascript" src="version.js"></script>
 <script type="text/javascript" src="detector.js"></script>
+
 <script type="text/javascript" src="bitSource.js"></script>
+<script type="text/javascript" src="gf256poly.js"></script>
+<script type="text/javascript" src="gf256.js"></script>
+<script type="text/javascript" src="reedSolomon.js"></script>
+<script type="text/javascript" src="decode.js"></script>
 <script type="text/javascript">
 var video = document.getElementById('video');
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 media.init(video, canvas, {
-	scale : 0.3,
+	scale : 0.5,
 	onSnapshot : progress
 });
 
@@ -45,10 +52,9 @@ function progress(canvas){
 			ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
 	        ctx.fill();
 		}
-		var qrMatrix = new Detector(imgMatrix, patternInfo).process();
 		finded = true;
-
-		var source = new Decode(qrMatrix),process();
+		var qrMatrix = new Detector(imgMatrix, patternInfo).process();
+		var source = new Decode(qrMatrix).process();
 	})
 } 
 </script>

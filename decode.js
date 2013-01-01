@@ -74,6 +74,7 @@ Decode.MODE_TABLE = {
 		length : [8, 10, 12]
 	}
 }
+Decode.rsDecoder = new ReedSolomonDecoder(GF256.QR_CODE_FIELD);
 
 //用于计算差异
 //Offset i holds the number of 1 bits in the binary representation of i
@@ -104,10 +105,20 @@ Decode.prototype = {
 		this.dataBlocks = this.getDataBlocks();
 		console.log(this.dataBlocks);
 
-		this.bitSource = new BitSource(this.codeWord);
-		this.source = this.parseSource();
+		//纠错
+		//最无奈的过程 看不懂GF256
+		var resultBytes = [];
+		for(var i = 0, dataBlock; dataBlock = this.dataBlocks[i]; i++) {
+			this.correctErrors(dataBlock.codeWords, dataBlock.numDataCodewords);
+			for (var j = 0; j < dataBlock.numDataCodewords; j++) {
+				resultBytes.push(dataBlock.codeWords[j]);
+			}
+		}
+		console.log(resultBytes);
 
-		console.log(this.source);
+		this.bitSource = new BitSource(resultBytes, this.formatinfo.errorCorrectionLevel);
+		this.source = this.parseSource();
+		alert(this.source);
 	},
 
 	/**
@@ -337,8 +348,9 @@ Decode.prototype = {
 		for (var i = 0;i < ecbArray.length; i+= 3) {
           	for(var j = 0; j < ecbArray[i]; j++){
           		dataBlocks[BlockCount] = {
-          			codeWords : new Array(ecbArray[i + 1]),
+          			codeWords : [],
           			numDataCodewords : ecbArray[i + 2],
+          			numTotalCodeWords : ecbArray[i + 1]
           		}
           		BlockCount++;
           	}
@@ -348,7 +360,7 @@ Decode.prototype = {
         var shortBlocksTotalCodewords = ecbArray[1];
         var longerBlockStart = BlockCount - 1;
         while(longerBlockStart >= 0){
-        	if(dataBlocks[longerBlockStart].codeWords.length == shortBlocksTotalCodewords){
+        	if(dataBlocks[longerBlockStart].numTotalCodeWords == shortBlocksTotalCodewords){
         		break;
         	}
         	longerBlockStart--;
@@ -415,6 +427,25 @@ Decode.prototype = {
 		}
 	},
 
+	/**
+	 * 纠错
+	 * @param {array} codewordBytes 包含数据码和纠错信息的bytes数组
+	 * @param {int} numDataCodewords 数据码字数
+	 */
+	correctErrors : function(codewordBytes,  numDataCodewords){
+		var codewordsInts = codewordBytes.slice(0);
+		//纠错容量
+		var numECCodewords = codewordBytes.length - numDataCodewords;
+		try {
+			Decode.rsDecoder.decode(codewordsInts, numECCodewords);
+		} catch(rse) {
+			throw rse;
+		}
+		for(var i = 0; i < numDataCodewords; i++) {
+			codewordBytes[i] = codewordsInts[i];
+		}
+	},
+
 	//解析内容
 	parseSource : function(){
 		var mode, length;
@@ -427,8 +458,12 @@ Decode.prototype = {
 			this.dataLengthMode = 2;
 
 		do{
-			mode = this.bitSource.readBits(4);
-			switch(Decode.MODE_TABLE[mode].type){
+			if(this.bitSource.available() < 4){
+				break;
+			}else{
+				mode = Decode.MODE_TABLE[this.bitSource.readMode(4)].type;
+			}
+			switch(mode){
 				case 'TERMINATOR':
 					break;
 				case 'NUMERIC':
@@ -451,7 +486,7 @@ Decode.prototype = {
 				case 'HANZI':
 					break;
 			}
-		}while(mode == 'TERMINATOR');
+		}while(mode != 'TERMINATOR');
 
 		return data;
 	},

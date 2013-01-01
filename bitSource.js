@@ -16,5 +16,11 @@ BitSource.prototype = {
 		var bit = this.bit.substring(this.index, this.index + length);
 		this.index += length;
 		return parseInt(bit,2);
+	},
+	readMode : function(){
+		return this.readBits(4);
+	},
+	available : function(){
+		return this.bit.length - this.index;
 	}
 }
