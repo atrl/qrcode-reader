@@ -35,8 +35,12 @@ Detector.prototype = {
 			
 			// Kind of arbitrary -- expand search radius before giving up
 			for (var i = 4; i <= 16; i <<= 1){
-				alignmentPattern = this.findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY,  i);
-				break;
+				try{
+					alignmentPattern = this.findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY,  i);
+					break;
+				}catch(e){
+					
+				}
 			}
 			if(alignmentPattern){
 				ctx.arc(alignmentPattern.x, alignmentPattern.y, 3, 0, Math.PI*2, true);

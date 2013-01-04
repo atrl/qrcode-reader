@@ -22,6 +22,7 @@ FindPattern.prototype = {
 	patterns : [],
 	//主逻辑
 	find: function() {
+		this.patterns = [];
 		this.skip = Math.floor((3 * this.height) / (4 * MAX_MODULES));
 		if (this.skip < MIN_SKIP){
 				this.skip = MIN_SKIP;

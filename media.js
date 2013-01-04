@@ -22,13 +22,15 @@ var media = {
         self.config.onStart && self.config.onStart();
   	},
     find : function(){
-        var imgMatrix = new preProcess(this.getSnapshot());
+        var image = this.getSnapshot();
+        var imgMatrix = new preProcess(image);
+        debug.putImageData(image, 0, 0);
         var patternInfo = new FindPattern(imgMatrix).find();
         if(patternInfo){
             ctx.fillStyle = "rgb(200,0,0)";
-            ctx.arc(patternInfo.topLeft.x, patternInfo.topLeft.y, 5, 0, Math.PI*2, true);
-            ctx.arc(patternInfo.topRight.x, patternInfo.topRight.y, 5, 0, Math.PI*2, true);
-            ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
+            ctx.arc(this.rect.x + patternInfo.topLeft.x, this.rect.y + patternInfo.topLeft.y, 5, 0, Math.PI*2, true);
+            ctx.arc(this.rect.x + patternInfo.topRight.x, this.rect.y + patternInfo.topRight.y, 5, 0, Math.PI*2, true);
+            ctx.arc(this.rect.x + patternInfo.bottomLeft.x, this.rect.y + patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
             ctx.fill();
         }
         var qrMatrix = new Detector(imgMatrix, patternInfo).process();
