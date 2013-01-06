@@ -39,7 +39,7 @@ Detector.prototype = {
 					alignmentPattern = this.findAlignmentInRegion(moduleSize, estAlignmentX, estAlignmentY,  i);
 					break;
 				}catch(e){
-					
+
 				}
 			}
 			if(alignmentPattern){
@@ -62,7 +62,7 @@ Detector.prototype = {
 			this.checkAndNudgePoints(points);
 			try {
 				for(var x = 0; x < dimension; x ++) {
-					var bit = this.imgMatrix.get(points[x][0] >> 0, points[x][1] >> 0);
+					var bit = this.imgMatrix.get(points[x][0] |0, points[x][1] |0);
 					bits.set(x, y, bit);
 				}
 			} catch(aioobe) {
@@ -130,7 +130,7 @@ Detector.prototype = {
 	},
 
 	findAlignmentInRegion : function(overallEstModuleSize,  estAlignmentX,  estAlignmentY,  allowanceFactor){
-		var allowance = allowanceFactor * overallEstModuleSize >> 0;
+		var allowance = allowanceFactor * overallEstModuleSize |0;
 		var alignmentAreaLeftX = Math.max(0, estAlignmentX - allowance);
 		var alignmentAreaRightX = Math.min(this.imgMatrix.width - 1, estAlignmentX + allowance);
 		if(alignmentAreaRightX - alignmentAreaLeftX < overallEstModuleSize * 3) {
@@ -202,8 +202,8 @@ Detector.prototype = {
 	},
 
 	calculateModuleSizeOneWay : function(pattern1 , pattern2){
-		var size1 = this.sizeOfBlackWhiteBlackRunBothWays(pattern1.x>>0, pattern1.y>>0, pattern2.x>>0, pattern2.y>>0);
-		var size2 = this.sizeOfBlackWhiteBlackRunBothWays(pattern1.x>>0, pattern1.y>>0, pattern2.x>>0, pattern2.y>>0);
+		var size1 = this.sizeOfBlackWhiteBlackRunBothWays(pattern1.x|0, pattern1.y|0, pattern2.x|0, pattern2.y|0);
+		var size2 = this.sizeOfBlackWhiteBlackRunBothWays(pattern2.x|0, pattern2.y|0, pattern1.x|0, pattern1.y|0);
 
 		if(isNaN(size1)){
 			return size2 / 7;
@@ -223,9 +223,10 @@ Detector.prototype = {
 			otherToX = 0;
 		}else if(otherToX >= this.imgMatrix.width){
 			scale = (this.imgMatrix.width - 1 - fromX) / (otherToX - fromX);
+			otherToX = this.imgMatrix.width - 1;
 		}
 
-		var otherToY = (fromY - (toY - fromY) * scale) >> 0;
+		var otherToY = (fromY - (toY - fromY) * scale) |0;
 
 		scale = 1;
 		 if (otherToY < 0) {
@@ -235,7 +236,7 @@ Detector.prototype = {
 			scale = (this.imgMatrix.height - 1 - fromY) /  (otherToY - fromY);
 			otherToY = this.imgMatrix.height - 1;
         }
-        otherToX = (fromX + (otherToX - fromX) * scale) >> 0;
+        otherToX = (fromX + (otherToX - fromX) * scale) |0;
         
         result += this.sizeOfBlackWhiteBlackRun(fromX, fromY, otherToX, otherToY);
         return result - 1;
@@ -260,7 +261,7 @@ Detector.prototype = {
 
 		var error = -dx >> 1;
 		var xstep = fromX < toX ? 1 : -1;
-		var ystep = fromY < toX ? 1 : -1;
+		var ystep = fromY < toY ? 1 : -1;
         // In black pixels, looking for white, first or second time.
 		var state = 0;
 
