@@ -34,9 +34,9 @@ var media = {
             ctx.fill();
         }
         var qrMatrix = new Detector(imgMatrix, patternInfo).process();
+        var source = new Decode(qrMatrix).process();
         this.stopSnapshot();
         this.finded = true;
-        var source = new Decode(qrMatrix).process();
     },
   	gotStream : function(stream){
   		var self = this;

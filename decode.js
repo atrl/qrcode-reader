@@ -168,11 +168,11 @@ Decode.prototype = {
 		var maskedFormatInfo2 = 0;
 		var dimension = this.bitMatrix.height;
 		bitIndex = 0;
-		for(x = dimension - 1; x >= dimension - 7; x--, bitIndex++){
+		for(x = dimension - 1; x >= dimension - 8; x--, bitIndex++){
 			maskedFormatInfo2 += this.bitMatrix.get(x, 8) << bitIndex;
 		}
 
-		for(y = dimension - 8; y <= dimension - 1; y++, bitIndex++){
+		for(y = dimension - 7; y <= dimension - 1; y++, bitIndex++){
 			maskedFormatInfo2 += this.bitMatrix.get(8, y) << bitIndex;
 		}
 		console.log(maskedFormatInfo1.toString(2))
