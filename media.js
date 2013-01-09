@@ -24,7 +24,7 @@ var media = {
     find : function(){
         var image = this.getSnapshot();
         var imgMatrix = new preProcess(image);
-        debug.putImageData(image, 0, 0);
+        debugCtx.putImageData(image, 0, 0);
         var patternInfo = new FindPattern(imgMatrix).find();
         if(patternInfo){
             ctx.fillStyle = "rgb(200,0,0)";
@@ -45,16 +45,16 @@ var media = {
 			stream.stop();
 		};
 		this.video.addEventListener('canplaythrough', function () {
-			self.canvas.width = self.video.videoWidth * self.config.scale;
-			self.canvas.height = self.video.videoHeight * self.config.scale;
-            self.video.style.visibility = "hidden";
-            var rect = Math.min(self.canvas.width, self.canvas.height) * self.config.rect
-            self.rect = {
-                x : (self.canvas.width - rect) / 2,
-                y : (self.canvas.height - rect) / 2 ,
-                width : rect,
-                height : rect
-            }
+			self.canvas.width = self.video.videoWidth;
+			self.canvas.height = self.video.videoHeight;
+      debug.height = debug.width = self.config.rect;
+      self.video.style.visibility = "hidden";
+      self.rect = {
+          x : (self.canvas.width - self.config.rect) / 2,
+          y : (self.canvas.height - self.config.rect) / 2 ,
+          width : self.config.rect,
+          height : self.config.rect
+      }
 			self.progress();
 		}, false);
   	},

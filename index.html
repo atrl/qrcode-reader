@@ -38,14 +38,14 @@
 var video = document.getElementById('video');
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-var debug = document.getElementById('debug').getContext('2d');
+var debug = document.getElementById('debug');
+var debugCtx = debug.getContext('2d');
 var requestAnimationFrame = window.requestAnimationFrame || 
 							window.webkitRequestAnimationFrame || 
 							window.mozRequestAnimationFrame;
 
 media.init(video, canvas, {
-	scale : 5 / 8,
-	rect : 10 / 12,
+	rect : 400,
 });
 </script>
 </html>
