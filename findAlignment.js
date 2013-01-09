@@ -17,6 +17,7 @@ findAlignmentPattern.prototype = {
 		var endX = this.startX + this.width;
 		var middleY = this.startY + (this.height >> 1);
 		for(var i = 0; i < this.height; i++) {
+			//从中心点向两边查找
 			this.y = middleY + (i & 1 ? -1 : 1) * ((i + 1) >> 1);;
 			//校正图形没有分隔符判断 1-1-1-1-1会被内容区域污染只判断1-1-1
 			this.states = QUtil.getStates(3);
