@@ -466,24 +466,31 @@ Decode.prototype = {
 			switch(mode){
 				case 'TERMINATOR':
 					break;
-				case 'NUMERIC':
-					break;
-				case 'ALPHANUMERIC':
-					break;
 				case 'STRUCTURED_APPEND':
-					break;
-				case 'BYTE':
-					data += this.parseByte();
-					break;
-				case 'ECI':
-					break;
-				case 'KANJI':
 					break;
 				case 'FNC1_FIRST_POSITION':
 					break;
 				case 'FNC1_SECOND_POSITION':
 					break;
+
+
+				case 'ECI':
+					this.parseECI();
+					break;
+				case 'NUMERIC':
+					data += this.parseNumber();
+					break;	
+				case 'ALPHANUMERIC':
+					data += this.parseAlphaNumeric();
+					break;
+				case 'BYTE':
+					data += this.parseByte();
+					break;
+				case 'KANJI':
+					data += this.parseKanji();
+					break;
 				case 'HANZI':
+					data += this.parseHanzi();
 					break;
 			}
 		}while(mode != 'TERMINATOR');
@@ -497,18 +504,94 @@ Decode.prototype = {
 	},
 
 	//数字	 	0001
+	//数字分成3个一组转为10位二进制
+	//不足3位的时候 2位转成7位二进制 1位转为4位二进制
 	parseNumber : function(){
+		var length = this.bitSource.readBits(Decode.MODE_TABLE[0x01].length[this.dataLengthMode]);
+		var result = "";
+		var num;
+		while(length >= 3){
+			if(this.bitSource.available() < 10){
+				throw "parseNumber : length not enough";
+			}
+			//3位数最大999
+			num = this.bitSource.readBits(10);
+			if(num >= 1000){
+				throw "parseNumber : large then 1000";
+			}
+			result += num;
 
+			length -= 3;
+		}
+
+		if(length == 2){
+			if(this.bitSource.available() < 7){
+				throw "parseNumber : length not enough";
+			}
+			//3位数最大999
+			num = this.bitSource.readBits(7);
+			if(num >= 100){
+				throw "parseNumber : large then 100";
+			}
+			result += num;
+		}else if(length == 1){
+			if(this.bitSource.available() < 4){
+				throw "parseNumber : length not enough";
+			}
+			//3位数最大999
+			num = this.bitSource.readBits(4);
+			if(num >= 10){
+				throw "parseNumber : large then 10";
+			}
+			result += num;
+		}
+		return result;
 	},
 
 	//字母数字 	0010
-	parseAlphaNumeric : function(){
+	//总字符数共45个
+	//字母数字模式将2个分成一组，首位乘以45加上第二位， 转为11位二进制 
+	//不足2位转为6位2进制
+	parseAlphaNumeric : function(fc1InEffect){
+		var length = this.bitSource.readBits(Decode.MODE_TABLE[0x02].length[this.dataLengthMode]);
+		var result = [];
+		var bit;
+		while(length >= 2){
+			if(this.bitSource.available() < 11){
+				throw "parseAlphaNumeric : length not enough";
+			}
+			bit = this.bitSource.readBits(11);
+			result.push(Decode.ALPHANUMERIC[((bit / 45) | 0)]);
+			result.push(Decode.ALPHANUMERIC[bit % 45]);
+		}
 
+		if(length == 1){
+			result.push(Decode.ALPHANUMERIC[this.bitSource.readBits(6)]);
+		}
+
+		if(fc1InEffect) {
+			// We need to massage the result a bit if in an FNC1 mode:
+			for(var i = 0; i < result.length; i++) {
+				if(result[i] == '%') {
+					if(i < result.length - 1 && result[i + 1] == '%') {
+						// %% is rendered as %
+						result.splice(i + 1, 1);
+					} else {
+						// In alpha mode, % should be converted to FNC1 separator 0x1D
+						result[i] = String.fromCharCode(0x1D)
+					}
+				}
+			}
+		}
+		return result.join('');
 	},
 
 	//8 位字节	0100
 	parseByte : function(){
 		var length = this.bitSource.readBits(Decode.MODE_TABLE[0x04].length[this.dataLengthMode]);
+		if(length << 3 > this.bitSource.available()){
+			throw 'parseByte : length not enough';
+		}
 		var result = [];
 		while(length){
 			result.push(String.fromCharCode(this.bitSource.readBits(8)));
