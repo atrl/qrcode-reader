@@ -109,7 +109,7 @@ preProcess.prototype = {
 		for(i = 0; i < height; i++){
 			for(j = 0; j < width; j++){
 				var index = i * width * 4 + j * 4;
-				if(data[index] >= thresh){
+				if(data[index] > thresh){
 					//更新下bitmap
 					this.bitMatrix.set(j, i, 0);
 					data[index] = 255;

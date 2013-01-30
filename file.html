@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>qrcode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" media="(device-height: 568px)" /> 
+<style>
+*{margin:0;padding:0;}
+#wrap{position:relative;}
+</style>
+</head>
+<body>
+<div id="wrap">
+	<canvas id="canvas" width="600" height="600"></canvas>
+</div>
+<input type="file" id="file" />
+</body>
+<script type="text/javascript" src="media.js"></script>
+<script type="text/javascript" src="util.js"></script>
+<script type="text/javascript" src="bitMatrix.js"></script>
+<script type="text/javascript" src="preProcess.js"></script>
+
+<script type="text/javascript" src="pattern.js"></script>
+<script type="text/javascript" src="findPattern.js"></script>
+<script type="text/javascript" src="findAlignment.js"></script>
+<script type="text/javascript" src="perspectiveTransform.js"></script>
+<script type="text/javascript" src="version.js"></script>
+<script type="text/javascript" src="detector.js"></script>
+
+<script type="text/javascript" src="bitSource.js"></script>
+<script type="text/javascript" src="gf256poly.js"></script>
+<script type="text/javascript" src="gf256.js"></script>
+<script type="text/javascript" src="reedSolomon.js"></script>
+<script type="text/javascript" src="decode.js"></script>
+<script type="text/javascript">
+var canvas = document.getElementById('canvas');
+var file = document.getElementById('file');
+var ctx = canvas.getContext('2d');
+
+
+var process = function(image){
+    var imgMatrix = new preProcess(image);
+    var patternInfo = new FindPattern(imgMatrix).find();
+    if(patternInfo){
+        ctx.fillStyle = "rgb(200,0,0)";
+        ctx.arc(patternInfo.topLeft.x, patternInfo.topLeft.y, 5, 0, Math.PI*2, true);
+        ctx.arc(patternInfo.topRight.x, patternInfo.topRight.y, 5, 0, Math.PI*2, true);
+        ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
+        ctx.fill();
+    }
+    var qrMatrix = new Detector(imgMatrix, patternInfo).process();
+    var source = new Decode(qrMatrix).process();
+}
+
+file.addEventListener('change', function(e){
+	var pic = e.target.files[0];
+	var URL = window.URL ? window.URL : (window.webkitURL ? window.webkitURL : '');
+	var src = URL.createObjectURL(pic);
+	var img = new Image();
+	img.onload = function(){
+		ctx.drawImage(img, 0, 0);
+		process(ctx.getImageData(0, 0, this.width, this.height));
+	}
+	img.src = src;
+})
+
+
+
+</script>
+</html>
+</html>
