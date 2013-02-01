@@ -144,7 +144,6 @@ Decode.prototype = {
 	},
 	/**
 	 * 获取格式信息 直接使用掩模后的格式信息查表
-	 * 格式信息的第一位是最低位
 	 * @return {json} 返回错误等级和掩模图形
 	 */
 	getFormatInfo : function(){
@@ -216,22 +215,21 @@ Decode.prototype = {
 	},
 	/**
 	 * 获取版本信息 查水表
-	 * 版本信息的第一位是最高位 冏 与格式信息相反
 	 * @return {json} 版本信息
 	 */
 	getVersionInfo : function(){
 		var dimension = this.bitMatrix.height;
-		var version = (dimension - 17 >> 2);
+		var v = (dimension - 17 >> 2);
 		//版本号小于7没有版本信息
-		if(version <= 6){
-			return version;
+		if(v <= 6){
+			return v;
 		}
 
 		var x, y, bitIndex = 0;
 		var versionInfo1 = 0;
 		//topright的版本信息
-		for(var y = 5; y >= 0; y--){
-			for(x = dimension - 9; x >= dimension - 11; x--, bitIndex++){
+		for(var y = 0; y <= 5; y++){
+			for(x = dimension - 11; x <= dimension - 9; x++, bitIndex++){
 				versionInfo1 += this.bitMatrix.get(x, y) << bitIndex;
 			}
 		}
@@ -239,8 +237,8 @@ Decode.prototype = {
 		//bottomleft的版本信息
 		bitIndex = 0;
 		var versionInfo2 = 0;
-		for(x = 5; x >= 0; x--){
-			for(y = dimension - 9; y >= dimension - 11; y--, bitIndex++){
+		for(x = 0; x <= 5; x++){
+			for(y = dimension - 11; y <= dimension - 9; y++, bitIndex++){
 				versionInfo2 += this.bitMatrix.get(x, y) << bitIndex;
 			}
 		}
@@ -271,9 +269,7 @@ Decode.prototype = {
 			}
 		}
 		if (bestDifference <= 3) {
-			return {
-				version : bestVersion
-			}
+			return bestVersion
 		}
 		throw 'error version'
 	},
@@ -422,8 +418,8 @@ Decode.prototype = {
 
 		//版本信息
 		if(this.version > 6) {
-			bitMatrix.setRegion(this.dimension - 11, 0, 3, 6, null);
-			bitMatrix.setRegion(0, this.dimension - 11, 6, 3, null);
+			this.bitMatrix.setRegion(this.dimension - 11, 0, 3, 6, null);
+			this.bitMatrix.setRegion(0, this.dimension - 11, 6, 3, null);
 		}
 	},
 
