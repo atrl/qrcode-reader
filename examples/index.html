@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>qrcode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" media="(device-height: 568px)" /> 
+<style>
+*{margin:0;padding:0;}
+#wrap{position:relative;}
+#canvas{position:absolute; top: 0;left:0;}
+</style>
+</head>
+<body>
+<div id="wrap">
+	<video id="video" width="600" height="600" autoplay></video>
+	<canvas id="canvas" width="600" height="600"></canvas>
+</div>
+<canvas id="debug" width="300" height="300" style="position:absolute;top:0;right:0;"></canvas>
+</body>
+<script type="text/javascript" src="../src/media.js"></script>
+<script type="text/javascript" src="../src/util.js"></script>
+<script type="text/javascript" src="../src/bitMatrix.js"></script>
+<script type="text/javascript" src="../src/preProcess.js"></script>
+
+<script type="text/javascript" src="../src/detector/pattern.js"></script>
+<script type="text/javascript" src="../src/detector/findPattern.js"></script>
+<script type="text/javascript" src="../src/detector/findAlignment.js"></script>
+<script type="text/javascript" src="../src/detector/perspectiveTransform.js"></script>
+<script type="text/javascript" src="../src/detector/version.js"></script>
+<script type="text/javascript" src="../src/detector/detector.js"></script>
+
+<script type="text/javascript" src="../src/decode/bitSource.js"></script>
+<script type="text/javascript" src="../src/decode/gf256poly.js"></script>
+<script type="text/javascript" src="../src/decode/gf256.js"></script>
+<script type="text/javascript" src="../src/decode/reedSolomon.js"></script>
+<script type="text/javascript" src="../src/decode/decode.js"></script>
+<script type="text/javascript">
+var video = document.getElementById('video');
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var debug = document.getElementById('debug');
+var debugCtx = debug.getContext('2d');
+var requestAnimationFrame = window.requestAnimationFrame || 
+							window.webkitRequestAnimationFrame || 
+							window.mozRequestAnimationFrame;
+
+media.init(video, canvas, {
+	rect : 400,
+});
+</script>
+</html>
+</html>
