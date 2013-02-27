@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <title>qrcode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" />
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" media="(device-height: 568px)" /> 
 <style>
 *{margin:0;padding:0;}
@@ -11,7 +12,7 @@
 </head>
 <body>
 <div id="wrap">
-	<canvas id="canvas" width="600" height="600"></canvas>
+	<canvas id="canvas" width="400" height="400"></canvas>
 </div>
 <input type="file" id="file" />
 </body>
@@ -59,7 +60,7 @@ file.addEventListener('change', function(e){
 	var img = new Image();
 	img.onload = function(){
 		ctx.drawImage(img, 0, 0);
-		process(ctx.getImageData(0, 0, this.width, this.height));
+		process(ctx.getImageData(0, 0, 400, 400));
 	}
 	img.src = src;
 })
