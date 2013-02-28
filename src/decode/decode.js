@@ -1,6 +1,6 @@
 var Decode = function(bitMatrix){
 	this.bitMatrix = bitMatrix;
-}
+};
 
 //字母数字模式映射表
 Decode.ALPHANUMERIC = [
@@ -20,7 +20,7 @@ Decode.FORMATINFO = [
 	0x662F, 0x6318, 0x6C41, 0x6976, 0x1689, 0x13BE, 
 	0x1CE7, 0x19D0, 0x0762, 0x0255, 0x0D0C, 0x083B, 
 	0x355F, 0x3068, 0x3F31, 0x3A06, 0x24B4, 0x2183, 
-	0x2EDA, 0x2BED,
+	0x2EDA, 0x2BED
 ];
 
 //纠错等级表
@@ -73,7 +73,7 @@ Decode.MODE_TABLE = {
 		type : 'HANZI',
 		length : [8, 10, 12]
 	}
-}
+};
 Decode.rsDecoder = new ReedSolomonDecoder(GF256.QR_CODE_FIELD);
 
 //用于计算差异
@@ -91,7 +91,7 @@ Decode.numBitsDiffering = function(a, b){
 		Decode.BITS_SET_IN_HALF_BYTE[(a >>> 20 & 0x0F)] +
 		Decode.BITS_SET_IN_HALF_BYTE[(a >>> 24 & 0x0F)] +
 		Decode.BITS_SET_IN_HALF_BYTE[(a >>> 28 & 0x0F)];
-}
+};
 
 Decode.prototype = {
 
@@ -174,8 +174,8 @@ Decode.prototype = {
 		for(y = dimension - 7; y <= dimension - 1; y++, bitIndex++){
 			maskedFormatInfo2 += this.bitMatrix.get(8, y) << bitIndex;
 		}
-		console.log(maskedFormatInfo1.toString(2))
-		console.log(maskedFormatInfo2.toString(2))
+		console.log(maskedFormatInfo1.toString(2));
+		console.log(maskedFormatInfo2.toString(2));
 		//从编码后的格式信息列表中寻找一样的格式信息
 		var bestFormatInfo, bestDifference;
 		for(var i = 0, targetFormatInfo; targetFormatInfo = Decode.FORMATINFO[i]; i++){
@@ -209,7 +209,7 @@ Decode.prototype = {
 				errorCorrectionLevel : parseInt(formatInfoBit.substring(0, 2), 2),
 				//掩模图形
 				maskPattern : parseInt(formatInfoBit.substring(2, 5), 2)
-			}
+			};
 		}
 		throw 'error formatinfo'
 	},
