@@ -10,7 +10,7 @@ var findAlignmentPattern = function(imgMatrix,  startX,  startY,  width,  height
 	this.height = height;
 	this.moduleSize = moduleSize;
 
-}
+};
 findAlignmentPattern.prototype = {
 	patterns : [],
 	find : function(){
@@ -168,5 +168,5 @@ findAlignmentPattern.prototype = {
 	//从图形最后的x或y找到中心点的位置
 	getCenterFromEnd : function(states, end){
 		return (end - states[2]) - states[1] / 2;
-	},
+	}
 }

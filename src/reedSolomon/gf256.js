@@ -21,6 +21,12 @@ function GF256(primitive) {
 }
 
 GF256.prototype = {
+    /**
+     * 创建单项式
+     * @param degree        次数 所有字母的指数的和
+     * @param coefficient   系数
+     * @return {*}
+     */
 	buildMonomial : function(degree, coefficient) {
 		if(degree < 0) {
 			throw "System.ArgumentException";
