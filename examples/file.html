@@ -60,6 +60,7 @@ file.addEventListener('change', function(e){
 	var src = URL.createObjectURL(pic);
 	var img = new Image();
 	img.onload = function(){
+		canvas.width = this.width, canvas.height = this.height;
 		ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 		process(ctx.getImageData(0, 0, canvas.width, canvas.height));
 	}
