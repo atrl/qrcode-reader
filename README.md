@@ -6,3 +6,4 @@ qread 是一个基于qrcode的二维码探测和解码的js, 参考了目前主�
 
 
 
+[![Build Status](https://travis-ci.org/atrl/qread.png)](https://travis-ci.org/atrl/qread)
