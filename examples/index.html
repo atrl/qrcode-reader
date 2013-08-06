@@ -9,6 +9,7 @@
 #wrap{position:relative;}
 #canvas{position:absolute; top: 0;left:0;}
 </style>
+<script src="http://seajs.github.io/seajs/dist/sea.js"></script>
 </head>
 <body>
 <div id="wrap">
@@ -17,37 +18,25 @@
 </div>
 <canvas id="debug" width="300" height="300" style="position:absolute;top:0;right:0;"></canvas>
 </body>
-<script type="text/javascript" src="../src/media.js"></script>
-<script type="text/javascript" src="../src/util.js"></script>
-<script type="text/javascript" src="../src/bitMatrix.js"></script>
-<script type="text/javascript" src="../src/preProcess.js"></script>
-
-<script type="text/javascript" src="../src/detector/pattern.js"></script>
-<script type="text/javascript" src="../src/detector/findPattern.js"></script>
-<script type="text/javascript" src="../src/detector/findAlignment.js"></script>
-<script type="text/javascript" src="../src/detector/perspectiveTransform.js"></script>
-<script type="text/javascript" src="../src/detector/version.js"></script>
-<script type="text/javascript" src="../src/detector/detector.js"></script>
-
-<script type="text/javascript" src="../src/reedSolomon/gf256poly.js"></script>
-<script type="text/javascript" src="../src/reedSolomon/gf256.js"></script>
-<script type="text/javascript" src="../src/reedSolomon/reedSolomon.js"></script>
-
-<script type="text/javascript" src="../src/decode/bitSource.js"></script>
-<script type="text/javascript" src="../src/decode/decode.js"></script>
 <script type="text/javascript">
-var video = document.getElementById('video');
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
-var debug = document.getElementById('debug');
-var debugCtx = debug.getContext('2d');
-var requestAnimationFrame = window.requestAnimationFrame || 
-							window.webkitRequestAnimationFrame || 
-							window.mozRequestAnimationFrame;
+    seajs.config({
+        base: '../src/'
+    });
+    var video = document.getElementById('video');
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var debug = document.getElementById('debug');
+    var debugCtx = debug.getContext('2d');
+    var requestAnimationFrame = window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame;
+    seajs.use(['../examples/media'], function(media){
 
-media.init(video, canvas, {
-	rect : 400,
-});
+
+        media.init(video, canvas, {
+            rect : 400
+        });
+    })
 </script>
 </html>
 </html>

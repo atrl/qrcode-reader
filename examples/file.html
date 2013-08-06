@@ -4,11 +4,12 @@
 <meta charset="UTF-8" />
 <title>qrcode</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" />
-<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" media="(device-height: 568px)" /> 
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" media="(device-height: 568px)" />
 <style>
 *{margin:0;padding:0;}
 #wrap{position:relative;}
 </style>
+<script src="http://seajs.github.io/seajs/dist/sea.js"></script>
 </head>
 <body>
 <div id="wrap">
@@ -16,57 +17,32 @@
 </div>
 <input type="file" id="file" />
 </body>
-<script type="text/javascript" src="../src/media.js"></script>
-<script type="text/javascript" src="../src/util.js"></script>
-<script type="text/javascript" src="../src/bitMatrix.js"></script>
-<script type="text/javascript" src="../src/preProcess.js"></script>
-<script type="text/javascript" src="../src/version.js"></script>
 
-<script type="text/javascript" src="../src/detector/pattern.js"></script>
-<script type="text/javascript" src="../src/detector/findPattern.js"></script>
-<script type="text/javascript" src="../src/detector/findAlignment.js"></script>
-<script type="text/javascript" src="../src/detector/perspectiveTransform.js"></script>
-<script type="text/javascript" src="../src/detector/detector.js"></script>
-
-<script type="text/javascript" src="../src/reedSolomon/gf256poly.js"></script>
-<script type="text/javascript" src="../src/reedSolomon/gf256.js"></script>
-<script type="text/javascript" src="../src/reedSolomon/reedSolomon.js"></script>
-
-<script type="text/javascript" src="../src/decode/bitSource.js"></script>
-<script type="text/javascript" src="../src/decode/decode.js"></script>
 <script type="text/javascript">
-var canvas = document.getElementById('canvas');
-var file = document.getElementById('file');
-var ctx = canvas.getContext('2d');
+seajs.config({
+    base: '../src/'
+});
+seajs.use('qread', function(qread){
+    var canvas = document.getElementById('canvas');
+    var file = document.getElementById('file');
+    var ctx = canvas.getContext('2d');
 
-
-var process = function(image){
-    var imgMatrix = new preProcess(image);
-    var patternInfo = new FindPattern(imgMatrix).find();
-    if(patternInfo){
-        ctx.fillStyle = "rgb(200,0,0)";
-        ctx.arc(patternInfo.topLeft.x, patternInfo.topLeft.y, 5, 0, Math.PI*2, true);
-        ctx.arc(patternInfo.topRight.x, patternInfo.topRight.y, 5, 0, Math.PI*2, true);
-        ctx.arc(patternInfo.bottomLeft.x, patternInfo.bottomLeft.y, 5, 0, Math.PI*2, true);
-        ctx.fill();
-    }
-    var qrMatrix = new Detector(imgMatrix, patternInfo).process();
-    var source = new Decode(qrMatrix).process();
-}
-
-file.addEventListener('change', function(e){
-	var pic = e.target.files[0];
-	var URL = window.URL ? window.URL : (window.webkitURL ? window.webkitURL : '');
-	var src = URL.createObjectURL(pic);
-	var img = new Image();
-	img.onload = function(){
-		canvas.width = this.width, canvas.height = this.height;
-		ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-		process(ctx.getImageData(0, 0, canvas.width, canvas.height));
-	}
-	img.src = src;
-})
-
+    file.addEventListener('change', function(e){
+        var pic = e.target.files[0];
+        var URL = window.URL ? window.URL : (window.webkitURL ? window.webkitURL : '');
+        var src = URL.createObjectURL(pic);
+        var img = new Image();
+        img.onload = function(){
+            canvas.width = this.width;
+            canvas.height = this.height;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            qread(ctx.getImageData(0, 0, canvas.width, canvas.height), function(data){
+                alert(data);
+            });
+        }
+        img.src = src;
+    })
+});
 
 
 </script>
