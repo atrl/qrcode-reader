@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>qrcode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" media="(device-height: 568px)" />
+<style>
+*{margin:0;padding:0;}
+#wrap{position:relative;}
+</style>
+<script src="http://seajs.github.io/seajs/dist/sea.js"></script>
+</head>
+<body>
+<div id="wrap">
+    <canvas id="canvas" width="400" height="400"></canvas>
+</div>
+<input type="file" id="file" />
+</body>
+
+<script type="text/javascript">
+seajs.config({
+    base: '../src/'
+});
+seajs.use('qread', function(qread){
+    var canvas = document.getElementById('canvas');
+    var file = document.getElementById('file');
+    var ctx = canvas.getContext('2d');
+
+    file.addEventListener('change', function(e){
+        var pic = e.target.files[0];
+        var URL = window.URL ? window.URL : (window.webkitURL ? window.webkitURL : '');
+        var src = URL.createObjectURL(pic);
+        var img = new Image();
+        img.onload = function(){
+            canvas.width = this.width;
+            canvas.height = this.height;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            qread(ctx.getImageData(0, 0, canvas.width, canvas.height), function(data){
+                alert(data);
+            });
+        }
+        img.src = src;
+    })
+});
+
+
+</script>
+</html>
+</html>

@@ -1,0 +1,33 @@
+{
+    "name": "qread",
+    "version": "0.0.1",
+    "description": "QRcode detector & decoder",
+    "keywords": [
+        "QRcode"
+    ],
+    "author": "atrlzhuang <i@atrl.me>",
+    "engines": {
+        "node": ">= 0.6.0"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-contrib-qunit": "*"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/atrl/qread.git"
+    },
+    "main": "./src/qread.js",
+    "bugs": {
+        "url": "https://github.com/atrl/qread/issues"
+    },
+    "directories": {
+        "example": "examples",
+        "test": "test"
+    },
+    "scripts": {
+        "test": "grunt test"
+    },
+    "license": "MIT"
+}
