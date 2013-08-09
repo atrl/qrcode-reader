@@ -1,4 +1,7 @@
-define(function(require){
+(function (definition) {
+    if (typeof define == 'function') define(definition);
+    else if (typeof module != 'undefined') module.exports = definition(require, module.exports, module);
+})(function (require, exports, module) {
     var preProcess = require('./preProcess');
     var FindPattern = require('./detector/findPattern');
     var Detector = require('./detector/detector');
