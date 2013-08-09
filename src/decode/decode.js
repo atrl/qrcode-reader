@@ -5,7 +5,7 @@
 
     //纠错
     var ReedSolomonDecoder = require('../reedSolomon/reedSolomon');
-    var GF256 = require('../reedSolomon/GF').GF256;
+    var GF256 = require('../reedSolomon/gf').GF256;
 
     var BitSource = require('./bitSource');
 
