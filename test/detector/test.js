@@ -6,10 +6,9 @@
     var Detector = require('../../src/detector/detector');
     var pattern1 = require('./pattern1');
     test('can select', function () {
-        var patternInfo = new FindPattern(pattern1).find();
-
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
+        canvas.width = canvas.height = pattern1.width;
         var imgData = ctx.getImageData(0, 0, pattern1.width, pattern1.height);
 
         pattern1.data.forEach(function (v, i) {
@@ -17,8 +16,10 @@
             imgData.data[i * 4 + 1] = (v ^ 1) * 255;
             imgData.data[i * 4 + 2] = (v ^ 1) * 255;
             imgData.data[i * 4 + 3] = v * 255;
-        })
+        });
         ctx.putImageData(imgData, 0, 0);
+        var patternInfo = new FindPattern(pattern1).find();
+        console.log(JSON.stringify(patternInfo));
         if (patternInfo) {
             ctx.fillStyle = "rgb(200,0,0)";
             ctx.arc(patternInfo.topLeft.x, patternInfo.topLeft.y, 5, 0, Math.PI * 2, true);
@@ -27,6 +28,7 @@
             ctx.fill();
         }
         var qrMatrix = new Detector(pattern1, patternInfo).process();
+        console.log(JSON.stringify(qrMatrix));
         ok(true);
     });
 });
