@@ -134,7 +134,8 @@
 
             this.bitSource = new BitSource(resultBytes, this.formatinfo.errorCorrectionLevel);
             this.source = this.parseSource();
-            alert(this.source);
+            console.log(this.source);
+            return this.source;
         },
 
         /**
