@@ -3,8 +3,8 @@
     else if (typeof module != 'undefined') module.exports = definition(require, module.exports, module);
 })(function (require, exports, module) {
     //二值化后的image对象
-    var BitMatrix = function (width, height) {
-        this.data = [];
+    var BitMatrix = function (width, height, data) {
+        this.data = data || [];
         this.width = width;
         this.height = height || width;
     };
