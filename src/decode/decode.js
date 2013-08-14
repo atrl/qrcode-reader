@@ -8,14 +8,17 @@
     var GF256 = require('../reedSolomon/gf').GF256;
 
     var BitSource = require('./bitSource');
-
+    var qutil = require('../qutil');
     //特殊编码
     var urldecode = require('../urldecode');
 
     var version = require('../version');
 
-    var Decode = function (bitMatrix) {
+    var Decode = function (bitMatrix, callback) {
+        this.data = '';
         this.bitMatrix = bitMatrix;
+        this.callback = callback || function () {
+        };
     };
 
     //字母数字模式映射表
@@ -130,12 +133,26 @@
                     resultBytes.push(dataBlock.codeWords[j]);
                 }
             }
-            console.log(resultBytes);
 
             this.bitSource = new BitSource(resultBytes, this.formatinfo.errorCorrectionLevel);
-            this.source = this.parseSource();
-            console.log(this.source);
-            return this.source;
+
+            //根据版本号确认数据长度
+            if (this.version <= 9)
+                this.dataLengthMode = 0;
+            else if (this.version >= 10 && this.version <= 26)
+                this.dataLengthMode = 1;
+            else if (this.version >= 27 && this.version <= 40)
+                this.dataLengthMode = 2;
+
+            this.parseSource();
+        },
+
+        decode_utf8 : function(){
+            var result;
+            try{
+                result = decodeURIComponent(escape(this.data));
+            }catch(e){}
+            this.callback(result);
         },
 
         /**
@@ -228,7 +245,7 @@
             }
             //Hamming distance of the 32 masked codes is 7, by construction, so <= 3 bits differing means we found a match
             if (bestDifference <= 3) {
-                var formatInfoBit = bestFormatInfo.toString(2)
+                var formatInfoBit = qutil.prefixBit(bestFormatInfo, 5);
                 return {
                     //纠错等级
                     errorCorrectionLevel: parseInt(formatInfoBit.substring(0, 2), 2),
@@ -457,11 +474,11 @@
             var codewordsInts = codewordBytes.slice(0);
             //纠错容量
             var numECCodewords = codewordBytes.length - numDataCodewords;
-            try {
+           //try {
                 Decode.rsDecoder.decode(codewordsInts, numECCodewords);
-            } catch (rse) {
-                throw rse;
-            }
+            //} catch (rse) {
+//                throw rse;
+//            }
             for (var i = 0; i < numDataCodewords; i++) {
                 codewordBytes[i] = codewordsInts[i];
             }
@@ -469,23 +486,16 @@
 
         //解析内容
         parseSource: function () {
-            var mode, length;
-            var data = '';
-            if (this.version <= 9)
-                this.dataLengthMode = 0;
-            else if (this.version >= 10 && this.version <= 26)
-                this.dataLengthMode = 1;
-            else if (this.version >= 27 && this.version <= 40)
-                this.dataLengthMode = 2;
+            var indicator, mode, len;
+            if (this.bitSource.available() < 4) {
+                this.decode_utf8();
+            } else {
+                indicator = this.bitSource.readMode();
+                mode = Decode.MODE_TABLE[indicator].type;
 
-            do {
-                if (this.bitSource.available() < 4) {
-                    break;
-                } else {
-                    mode = Decode.MODE_TABLE[this.bitSource.readMode(4)].type;
-                }
                 switch (mode) {
                     case 'TERMINATOR':
+                        this.decode_utf8();
                         break;
                     case 'STRUCTURED_APPEND':
                         break;
@@ -499,24 +509,25 @@
                         this.parseECI();
                         break;
                     case 'NUMERIC':
-                        data += this.parseNumber();
+                        this.parseNumber();
                         break;
                     case 'ALPHANUMERIC':
-                        data += this.parseAlphaNumeric();
+                        this.parseAlphaNumeric();
                         break;
                     case 'BYTE':
-                        data += this.parseByte();
+                        this.parseByte();
                         break;
                     case 'KANJI':
-                        data += this.parseKanji();
+                        this.parseKanji();
                         break;
                     case 'HANZI':
-                        data += this.parseHanzi();
+                        this.parseHanzi();
                         break;
                 }
-            } while (mode != 'TERMINATOR');
-
-            return data;
+            }
+        },
+        getModeLength : function(indicator){
+            return this.bitSource.readBits(Decode.MODE_TABLE[indicator].length[this.dataLengthMode]);
         },
 
         //ECI 		0111
@@ -528,7 +539,7 @@
         //数字分成3个一组转为10位二进制
         //不足3位的时候 2位转成7位二进制 1位转为4位二进制
         parseNumber: function () {
-            var length = this.bitSource.readBits(Decode.MODE_TABLE[0x01].length[this.dataLengthMode]);
+            var length = this.getModeLength(0x01);
             var result = "";
             var num;
             while (length >= 3) {
@@ -574,7 +585,7 @@
         //字母数字模式将2个分成一组，首位乘以45加上第二位， 转为11位二进制
         //不足2位转为6位2进制
         parseAlphaNumeric: function (fc1InEffect) {
-            var length = this.bitSource.readBits(Decode.MODE_TABLE[0x02].length[this.dataLengthMode]);
+            var length = this.getModeLength(0x02);
             var result = [];
             var bit;
             while (length >= 2) {
@@ -604,12 +615,13 @@
                     }
                 }
             }
-            return result.join('');
+            this.data += result.join('');
+            this.parseSource();
         },
 
         //8 位字节	0100
         parseByte: function () {
-            var length = this.bitSource.readBits(Decode.MODE_TABLE[0x04].length[this.dataLengthMode]);
+            var length = this.getModeLength(0x04);
             if (length << 3 > this.bitSource.available()) {
                 throw 'parseByte : length not enough';
             }
@@ -618,7 +630,8 @@
                 result.push(String.fromCharCode(this.bitSource.readBits(8)));
                 length--;
             }
-            return result.join('');
+            this.data += result.join('');
+            this.parseSource();
         },
 
         //日本汉字 	1000
@@ -628,9 +641,38 @@
 
         //中国汉字	1101
         parseHanzi: function () {
+            var self = this,
+            // GB／T 18284-2000 6.4
+            // 在中文汉字模式下, 再模式指示符之后, 字符计数指示符前, 加入中文汉字子集指示符, 其格式为4位, 指示汉字子集, 目前可选的只有0001
+                charset = this.bitSource.readBits(4),
+                length = this.getModeLength(0x0D),
+                buffer = [], urlencodeStr;
+            if (length * 13 > this.bitSource.available()) {
+                throw 'parseByte : length not enough';
+            }
 
-            urldecode(str, 'GB2312', function (str) {
+            while (length) {
+                var twoBytes = this.bitSource.readBits(13);
+                var assembledTwoBytes = ((twoBytes / 0x060) << 8) | (twoBytes % 0x060);
+                if (assembledTwoBytes < 0x003BF) {
+                    // In the 0xA1A1 to 0xAAFE range
+                    assembledTwoBytes += 0x0A1A1;
+                } else {
+                    // In the 0xB0A1 to 0xFAFE range
+                    assembledTwoBytes += 0x0A6A1;
+                }
+                buffer.push((assembledTwoBytes >> 8) & 0xFF);
+                buffer.push(assembledTwoBytes & 0xFF);
+                length--;
+            }
+            //转成urlencode字符串
+            urlencodeStr = buffer.map(function(v){
+                return '%' + v.toString(16);
+            });
 
+            urldecode(urlencodeStr, 'GB2312', function (str) {
+                self.data += str;
+                self.parseSource()
             });
         }
     };

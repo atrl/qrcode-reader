@@ -11,7 +11,7 @@
         var imgMatrix = new preProcess(image);
         var patternInfo = new FindPattern(imgMatrix).find();
         var qrMatrix = new Detector(imgMatrix, patternInfo).process();
-        new Decode(qrMatrix).process(callback);
+        new Decode(qrMatrix, callback).process();
     }
     return qread;
 });

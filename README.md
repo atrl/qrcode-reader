@@ -7,7 +7,8 @@ qread 是一个基于qrcode的二维码探测和解码的js, 参考了目前主�
 
 ##如何使用##
 > var qread = require('./src/qread');
-> var result = qread(image);
+
+> qread(image, callback);
 
 ##Todo##
 增加对gb2312的支持 通过data:text/javascript;转换的字符需要异步 这里需要调整接口

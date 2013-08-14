@@ -1,0 +1,8 @@
+2013.08.06, Version 0.0.1
+
+* decode 修复纠错等级获取错误
+
+* decode 增加utf-8解码
+
+* decode 增加gb2312解码
+
