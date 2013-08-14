@@ -34,4 +34,4 @@
             ok(result == '测试', 'Passed');
         }).process();
     });
-});2013.08.06, Version 0.11.5 (Unstable)
+});
