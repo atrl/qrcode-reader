@@ -7,7 +7,7 @@
     var utf8 = require('./utf8');
 
     function draw(image){
-        if(!window) return;
+        if(typeof global != 'undefined') return;
         var canvas = document.createElement('canvas');
         canvas.width = canvas.height = image.width;
         document.body.appendChild(canvas);
@@ -24,6 +24,7 @@
     test('wechat', function () {
         draw(wechat);
         new Decode(wechat, function(result){
+            console.log(result);
             ok(result == 'http://weixin.qq.com/r/C-uxvq3EF5Noh7zdn64v', 'Passed');
         }).process();
     });
@@ -31,6 +32,7 @@
     test('utf8', function () {
         draw(utf8);
         new Decode(utf8, function(result){
+            console.log(result);
             ok(result == '测试', 'Passed');
         }).process();
     });

@@ -8,7 +8,7 @@
     var GF256 = require('../reedSolomon/gf').GF256;
 
     var BitSource = require('./bitSource');
-    var qutil = require('../qutil');
+
     //特殊编码
     var urldecode = require('../urldecode');
 
@@ -245,12 +245,11 @@
             }
             //Hamming distance of the 32 masked codes is 7, by construction, so <= 3 bits differing means we found a match
             if (bestDifference <= 3) {
-                var formatInfoBit = qutil.prefixBit(bestFormatInfo, 5);
                 return {
                     //纠错等级
-                    errorCorrectionLevel: parseInt(formatInfoBit.substring(0, 2), 2),
+                    errorCorrectionLevel: bestFormatInfo >> 3,
                     //掩模图形
-                    maskPattern: parseInt(formatInfoBit.substring(2, 5), 2)
+                    maskPattern: bestFormatInfo & 7
                 };
             }
             throw 'error formatinfo'
@@ -474,11 +473,11 @@
             var codewordsInts = codewordBytes.slice(0);
             //纠错容量
             var numECCodewords = codewordBytes.length - numDataCodewords;
-           //try {
+            try {
                 Decode.rsDecoder.decode(codewordsInts, numECCodewords);
-            //} catch (rse) {
-//                throw rse;
-//            }
+            } catch (rse) {
+                throw rse;
+            }
             for (var i = 0; i < numDataCodewords; i++) {
                 codewordBytes[i] = codewordsInts[i];
             }
