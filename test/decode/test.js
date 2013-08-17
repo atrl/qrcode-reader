@@ -33,6 +33,9 @@
         draw(utf8);
         new Decode(utf8, function(result){
             console.log(result);
+            //测 "11100110" "10110101" "10001011"
+            //试 "11101000" "10101111" "10010101"
+            //0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
             ok(result == '测试', 'Passed');
         }).process();
     });
