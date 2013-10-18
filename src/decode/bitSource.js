@@ -1,7 +1,8 @@
 (function (definition) {
     if (typeof define == 'function') define(definition);
     else if (typeof module != 'undefined') module.exports = definition(require, module.exports, module);
-})(function () {
+})(function (require) {
+    var qutil = require('../qutil');
 
     /**
      * 解码前二进制数据
@@ -10,15 +11,11 @@
     var BitSource = function (codeWord) {
         var bit = '';
         codeWord.forEach(function (v) {
-            bit += BitSource.prefixInteger(+v.toString(2), 8);
+            bit += qutil.prefixBit(v, 8);
         });
 
         this.index = 0;
         this.bit = bit;
-    };
-    //用0补全位数
-    BitSource.prefixInteger = function (num, length) {
-        return (num / Math.pow(10, length)).toFixed(length).substr(2);
     };
 
     BitSource.prototype = {
